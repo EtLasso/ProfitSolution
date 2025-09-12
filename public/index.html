@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ProfitSolution — KI Forex Trading</title>
+  <meta name="description" content="ProfitSolution: modernes, futuristisches KI-gestütztes Forex-Trading Dashboard." />
+  <meta name="theme-color" content="#00e5ff" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{ --bg:#0b0f16; --bg-2:#0a0d13; --txt:#e6f2ff; --muted:#a2b3c5; --brand:#00e5ff; --brand-2:#7c4dff; --card:#0f1624aa; --stroke:#1b2438; --success:#18e39f; --danger:#ff5e7e; --glow:0 0 40px #00e5ff55, 0 0 80px #7c4dff33; --radius:18px; }
+    *{box-sizing:border-box} html,body{height:100%}
+    body{ margin:0; background:radial-gradient(1200px 1200px at 80% -10%, #0e1a2b 0%, #0b0f16 40%) no-repeat, var(--bg); color:var(--txt); font-family:Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol"; overflow-x:hidden;}
+    .backdrop{ position:fixed; inset:0; pointer-events:none; z-index:-1;}
+    .grid{ position:absolute; inset:0; background:linear-gradient(transparent 95%, #10192e 95%) 0 0/ 100% 28px, linear-gradient(90deg, transparent 95%, #10192e 95%) 0 0/ 28px 100%; mask-image: radial-gradient(1000px 600px at 70% -10%, #000 20%, transparent 70%); opacity:.35;}
+    .glow-blob{ position:absolute; width:600px; height:600px; filter:blur(80px); background:radial-gradient(closest-side, #00e5ff55, transparent 65%); top:-120px; left:60%; animation: float 14s ease-in-out infinite;}
+    .glow-blob.two{ width:500px; height:500px; background:radial-gradient(closest-side, #7c4dff55, transparent 65%); bottom:-140px; left:10%; animation: float 18s ease-in-out infinite reverse;}
+    @keyframes float{ 0%,100%{ transform:translateY(0) translateX(0) } 50%{ transform:translateY(20px) translateX(-10px) } }
+    header{ position:sticky; top:0; backdrop-filter:saturate(140%) blur(10px); background:linear-gradient(180deg, #0b0f16ee, #0b0f16cc); border-bottom:1px solid #111a2f; z-index:10;}
+    .nav{ max-width:1200px; margin:0 auto; padding:14px 20px; display:flex; align-items:center; gap:18px;}
+    .logo{ font-family:Orbitron, Inter, sans-serif; font-weight:700; letter-spacing:.5px; font-size:1.1rem; display:flex; align-items:center; gap:10px;}
+    .logo-badge{ width:28px; height:28px; border-radius:8px; background:conic-gradient(from 200deg, var(--brand), var(--brand-2), var(--brand)); box-shadow:var(--glow);}
+    .spacer{flex:1}
+    .nav a{color:var(--muted); text-decoration:none; font-weight:600; padding:8px 10px; border-radius:10px;}
+    .nav a:hover{color:var(--txt); background:#10182a}
+    .btn{ appearance:none; border:none; cursor:pointer; font-weight:700; letter-spacing:.3px; padding:10px 16px; border-radius:12px; transition:transform .15s ease, box-shadow .15s ease, background .2s ease;}
+    .btn-primary{ background:linear-gradient(135deg, var(--brand) 0%, var(--brand-2) 100%); color:#07121d; box-shadow:0 6px 22px #00e5ff2a;}
+    .btn-primary:hover{ transform:translateY(-1px); box-shadow:0 10px 26px #00e5ff3a; }
+    .btn-ghost{ color:var(--txt); background:#0f192c; border:1px solid #16233f;}
+    .btn-ghost:hover{ background:#12203a }
+    .hero{ max-width:1200px; margin:0 auto; padding:70px 20px 30px; display:grid; grid-template-columns:1.2fr .8fr; gap:36px; align-items:center;}
+    .title{ font-family:Orbitron, Inter, sans-serif; font-size:clamp(34px, 5vw, 56px); line-height:1.05; margin:0 0 14px; text-shadow:0 0 20px #00e5ff44;}
+    .subtitle{ color:var(--muted); font-size:clamp(16px, 2.2vw, 18px); margin:0 0 20px }
+    .hero .cta{ display:flex; gap:12px; flex-wrap:wrap }
+    .stat{ display:flex; gap:16px; align-items:center; margin-top:20px;}
+    .stat .pill{ padding:8px 12px; border-radius:999px; background:#0f182b; border:1px solid #16233f; color:#a9c8ff; font-weight:700; font-size:13px;}
+    .panel{ background:linear-gradient(180deg, #0f1624aa, #0b111eaa); border:1px solid #15213a; border-radius:18px; padding:18px; box-shadow:inset 0 1px 0 #1a2743, var(--glow);}
+    .ticker-wrap{ max-width:1200px; margin:10px auto 0; padding:0 20px;}
+    .ticker{ display:flex; gap:14px; overflow:hidden; position:relative; border:1px solid #15213a; border-radius:14px; background:linear-gradient(180deg,#0e1525,#0b111e);}
+    .ticker::before{ content:"LIVE FX"; position:absolute; left:10px; top:10px; font-size:12px; letter-spacing:1px; color:#86a8ff; font-weight:800; background:#0a1325; border:1px solid #15213a; border-radius:8px; padding:4px 8px;}
+    .ticker-track{ display:flex; gap:14px; padding:14px 14px 14px 90px; min-width:100%; animation: scroll 25s linear infinite;}
+    @keyframes scroll{ from{ transform:translateX(0) } to{ transform:translateX(-50%) } }
+    .pair{ display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; background:#0c1425; border:1px solid #15213a; min-width:200px;}
+    .pair .name{ font-weight:800 } .pair .price{ font-feature-settings:"tnum" 1; font-variant-numeric:tabular-nums; }
+    .chg.up{ color:var(--success) } .chg.down{ color:var(--danger) }
+    .content{ max-width:1200px; margin:30px auto 80px; padding:0 20px; display:grid; grid-template-columns: repeat(12, 1fr); gap:18px;}
+    .card{ grid-column: span 4; padding:18px; border-radius:18px; border:1px solid #15213a; background:#0b121f; box-shadow:inset 0 1px 0 #1a2743;}
+    .card h3{ margin:0 0 8px; font-family:Orbitron; letter-spacing:.3px } .card p{ margin:0; color:var(--muted) }
+    .chart-card{ grid-column: span 8; padding:18px; border-radius:18px; border:1px solid #15213a; background:#0b121f;}
+    canvas{ width:100%; height:280px; display:block }
+    .cta{ max-width:1200px; margin:0 auto 80px; padding:24px 20px;}
+    .cta .panel{ display:flex; align-items:center; justify-content:space-between; gap:18px; flex-wrap:wrap }
+    .cta h4{ margin:0; font-size:20px; font-weight:800 }
+    .cta form{ display:flex; gap:10px }
+    .input{ background:#0f192c; border:1px solid #16233f; border-radius:12px; padding:12px 14px; color:var(--txt); min-width:260px; font-family:inherit }
+    .input::placeholder{ color:#6f86a5 }
+    footer{ padding:40px 20px 60px; color:#8fa3bb; border-top:1px solid #111a2f; background:linear-gradient(180deg,#0b0f16,#090d14);}
+    .disclaimer{ font-size:12px; max-width:1000px; margin:0 auto; line-height:1.6 }
+    @media (max-width: 950px){ .hero{ grid-template-columns:1fr; padding-top:44px } .chart-card{ grid-column: span 12 } .card{ grid-column: span 12 } }
+  </style>
+</head>
+<body>
+  <div class="backdrop">
+    <div class="grid"></div>
+    <div class="glow-blob"></div>
+    <div class="glow-blob two"></div>
+  </div>
+
+  <header>
+    <nav class="nav">
+      <div class="logo">
+        <span class="logo-badge"></span>
+        <span>ProfitSolution</span>
+      </div>
+      <a href="#features">Funktionen</a>
+      <a href="#chart">Markt-Signal</a>
+      <a href="#kontakt">Kontakt</a>
+      <div class="spacer"></div>
+      <button class="btn btn-ghost">Login</button>
+      <button class="btn btn-primary">Jetzt starten</button>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <div>
+        <h1 class="title">KI-Forex-Trading. <br>Präziser. Schneller. Futuristisch.</h1>
+        <p class="subtitle">ProfitSolution nutzt intelligente Modelle, um Marktregime zu erkennen, Risiken zu steuern und Chancen in Echtzeit zu visualisieren – alles in einem eleganten Interface.</p>
+        <div class="cta">
+          <button class="btn btn-primary">Kostenlos testen</button>
+          <button class="btn btn-ghost">Demo ansehen</button>
+        </div>
+        <div class="stat">
+          <span class="pill">Backtests • Portfolio • Risiko</span>
+          <span class="pill">Echtzeit-Signale</span>
+          <span class="pill">API-Integrationen</span>
+        </div>
+      </div>
+      <div class="panel">
+        <h3 style="margin:0 0 6px; font-family:Orbitron;">Alpha-Snapshot</h3>
+        <p style="margin:0; color:var(--muted)">Live-Eindruck der Signal-Engine (Demo-Daten)</p>
+        <canvas id="miniChart" aria-label="Mini Chart"></canvas>
+      </div>
+    </section>
+
+    <div class="ticker-wrap">
+      <div class="ticker" aria-label="Live FX Ticker">
+        <div class="ticker-track" id="tickerA"></div>
+        <div class="ticker-track" id="tickerB" aria-hidden="true"></div>
+      </div>
+    </div>
+
+    <section id="features" class="content">
+      <article class="card">
+        <h3>🧠 KI-Signale</h3>
+        <p>Ensemble-Modelle erkennen Trend, Mean-Reversion und Volatilität in mehreren Zeithorizonten.</p>
+      </article>
+      <article class="card">
+        <h3>🛡️ Risiko-Engine</h3>
+        <p>Dynamische Positionsgrößen, Drawdown-Limits und Regime-Filter für robuste Strategien.</p>
+      </article>
+      <article class="card">
+        <h3>🔌 Integrationen</h3>
+        <p>Verbinde Broker-APIs, lade eigene Daten und exportiere Signale für Automatisierung.</p>
+      </article>
+
+      <article id="chart" class="chart-card">
+        <h3 style="margin:0 0 10px; font-family:Orbitron;">EUR/USD – Stimmungs-Indikator (Demo)</h3>
+        <canvas id="mainChart" aria-label="EUR/USD Chart"></canvas>
+      </article>
+
+      <article class="card">
+        <h3>⚡ Latenz &amp; Stabilität</h3>
+        <p>Streaming-Updates &amp; Caching für flotte Dashboards auch bei hoher Last.</p>
+      </article>
+    </section>
+
+    <section id="kontakt" class="cta">
+      <div class="panel">
+        <h4>Bereit für die Zukunft des Tradings?</h4>
+        <form onsubmit="event.preventDefault(); alert('Danke! Wir melden uns.');">
+          <input class="input" type="email" placeholder="E-Mail-Adresse" required />
+          <button class="btn btn-primary" type="submit">Frühen Zugang sichern</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <p class="disclaimer">
+      Hinweis: Diese Seite zeigt Demo-Inhalte. Keine Finanzberatung. Handel mit CFDs/FX ist risikoreich
+      und kann zum Verlust des eingesetzten Kapitals führen.
+    </p>
+  </footer>
+
+  <script>
+    (function(){
+      const c = document.getElementById('miniChart');
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const w = c.clientWidth, h = 180;
+      c.width = w * dpr; c.height = h * dpr; const ctx = c.getContext('2d'); ctx.scale(dpr, dpr);
+      const N = 60, data = []; let x = 1.10;
+      for(let i=0;i<N;i++){ x += (Math.random()-.5)*0.003; data.push(x); }
+      const grd = ctx.createLinearGradient(0,0,0,h);
+      grd.addColorStop(0, 'rgba(0,229,255,.28)'); grd.addColorStop(1, 'rgba(124,77,255,.05)');
+      const min = Math.min(...data), max = Math.max(...data);
+      const y = v => h - ( (v-min)/(max-min) ) * (h-20) - 10;
+      const xScale = i => (i/(N-1)) * (w-10) + 5;
+      ctx.beginPath(); ctx.moveTo(5, y(data[0]));
+      for(let i=1;i<N;i++) ctx.lineTo(xScale(i), y(data[i]));
+      ctx.lineTo(w-5, h-10); ctx.lineTo(5, h-10); ctx.closePath(); ctx.fillStyle = grd; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(5, y(data[0]));
+      for(let i=1;i<N;i++) ctx.lineTo(xScale(i), y(data[i]));
+      ctx.strokeStyle = '#00e5ff'; ctx.lineWidth = 2; ctx.shadowColor = '#00e5ff88'; ctx.shadowBlur = 8; ctx.stroke();
+    })();
+
+    const pairs = [
+      {name:'EUR/USD', p:1.1034}, {name:'GBP/USD', p:1.2861},
+      {name:'USD/JPY', p:147.28}, {name:'AUD/USD', p:0.6722},
+      {name:'USD/CHF', p:0.8891}, {name:'NZD/USD', p:0.6153},
+      {name:'USD/CAD', p:1.3120}, {name:'EUR/JPY', p:162.45},
+    ];
+    function perturb(v, mag){ return v + (Math.random()-0.5)*mag; }
+    function format(v){ return v.toFixed( (v>10)?2:4 ); }
+    function renderTicker(track){
+      track.innerHTML = '';
+      pairs.forEach(pair => {
+        const old = pair.p;
+        pair.p = Math.max(0.0001, perturb(pair.p, pair.p*0.0012));
+        const chg = pair.p - old;
+        const el = document.createElement('div');
+        el.className = 'pair';
+        el.innerHTML = `
+          <span class="name">${pair.name}</span>
+          <span class="price">${format(pair.p)}</span>
+          <span class="chg ${chg>=0?'up':'down'}">${chg>=0?'+':'−'}${Math.abs(chg/old*100).toFixed(2)}%</span>
+        `;
+        track.appendChild(el);
+      });
+    }
+    const A = document.getElementById('tickerA');
+    const B = document.getElementById('tickerB');
+    function fillTracks(){ renderTicker(A); renderTicker(B); }
+    fillTracks(); setInterval(fillTracks, 1800);
+
+    (function(){
+      const c = document.getElementById('mainChart');
+      const dpr = Math.max(1, window.devicePixelRatio || 1);
+      const w = c.clientWidth, h = 280;
+      c.width = w * dpr; c.height = h * dpr; const ctx = c.getContext('2d'); ctx.scale(dpr, dpr);
+      const N = 120, data = []; let v = 50;
+      for(let i=0;i<N;i++){ v += (Math.random()-.5)*4 + Math.sin(i/12)*1.2; data.push(Math.max(5, Math.min(95, v))); }
+      ctx.strokeStyle = '#15213a'; ctx.lineWidth = 1;
+      for(let i=0;i<=5;i++){ const y = 20 + i*(h-40)/5; ctx.beginPath(); ctx.moveTo(40, y); ctx.lineTo(w-10, y); ctx.stroke(); }
+      const y = v => 20 + (100 - v) * (h-40)/100;
+      const x = i => 40 + i*(w-60)/(N-1);
+      const grd = ctx.createLinearGradient(0,0,0,h);
+      grd.addColorStop(0, 'rgba(0,229,255,.25)'); grd.addColorStop(1, 'rgba(124,77,255,.05)');
+      ctx.beginPath(); ctx.moveTo(x(0), y(data[0]));
+      for(let i=1;i<N;i++) ctx.lineTo(x(i), y(data[i]));
+      ctx.lineTo(x(N-1), h-20); ctx.lineTo(x(0), h-20); ctx.closePath();
+      ctx.fillStyle = grd; ctx.fill();
+      ctx.beginPath(); ctx.moveTo(x(0), y(data[0]));
+      for(let i=1;i<N;i++) ctx.lineTo(x(i), y(data[i]));
+      ctx.lineWidth = 2; ctx.strokeStyle = '#00e5ff'; ctx.shadowColor = '#00e5ff66'; ctx.shadowBlur = 8; ctx.stroke();
+      ctx.fillStyle = '#86a8ff'; ctx.font = '600 12px Inter, sans-serif';
+      ctx.fillText('Signalstärke', 40, 14);
+      ctx.textAlign = 'right'; ctx.fillText('Zeit →', w-12, h-8);
+    })();
+  </script>
+</body>
+</html>

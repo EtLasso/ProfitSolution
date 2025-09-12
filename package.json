@@ -1,0 +1,27 @@
+{
+  "name": "profitsolution",
+  "version": "1.0.0",
+  "description": "Ki forex Trading",
+  "main": "app.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Rico",
+  "license": "ISC",
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/EtLasso/ProfitSolution.git"
+  },
+  "keywords": [
+    "ki",
+    "forex",
+    "trading"
+  ],
+  "bugs": {
+    "url": "https://github.com/EtLasso/ProfitSolution/issues"
+  },
+  "homepage": "https://github.com/EtLasso/ProfitSolution#readme",
+  "dependencies": {
+    "express": "^5.1.0"
+  }
+}
