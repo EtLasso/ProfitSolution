@@ -67,6 +67,22 @@
     .disclaimer{font-size:12px; max-width:1000px; margin:0 auto; line-height:1.6}
 
     @media (max-width:950px){ .hero{grid-template-columns:1fr; padding-top:44px} .chart-card{grid-column:span 12} .card{grid-column:span 12}}
+  /* FEATURES MODAL */
+  .fx-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px}
+  .fx-card{grid-column:span 4;background:#0b121f;border:1px solid #15213a;border-radius:18px;padding:16px;box-shadow:inset 0 1px 0 #1a2743}
+  .fx-card h4{margin:0 0 6px;font-family:Orbitron}
+  .fx-metric{font-size:28px;font-weight:800;letter-spacing:.3px;text-shadow:0 0 18px #00e5ff55}
+  .fx-badges{display:flex;flex-wrap:wrap;gap:8px}
+  .fx-badge{font-weight:700;font-size:12px;padding:6px 10px;border-radius:999px;background:#0f192c;border:1px solid #16233f}
+  .fx-hero{position:relative;border-radius:18px;border:1px solid #15213a;padding:16px;background:linear-gradient(180deg,#0f1624aa,#0b111eaa)}
+  .fx-hero svg{width:100%;height:180px;display:block}
+  .fx-path{stroke:#00e5ff;stroke-width:2;fill:none;filter:drop-shadow(0 0 6px #00e5ff88);stroke-dasharray:6 8;animation:dash 6s linear infinite}
+  @keyframes dash{to{stroke-dashoffset:-300}}
+  .fx-timeline{display:flex;gap:14px;flex-wrap:wrap}
+  .fx-node{flex:1;min-width:180px;background:#0b111e;border:1px solid #15213a;border-radius:14px;padding:12px}
+  .fx-node strong{display:block;font-family:Orbitron;margin-bottom:4px}
+  @media(max-width:950px){.fx-card{grid-column:span 12}}
+
   </style>
 
   <!-- Zusätzliche Styles fürs Demo-Modal -->
@@ -280,5 +296,75 @@
   </script>
   <script src="livefx.js"></script>
   <script src="wsfx.js"></script>
+  <!-- FEATURES MODAL -->
+  <div id="featuresModal" class="modal hidden" aria-hidden="true" role="dialog" aria-label="Funktionen">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h3>ProfitSolution · Funktionen &amp; KI-Stack</h3>
+        <button class="btn btn-ghost close" id="featuresClose" aria-label="Schließen">×</button>
+      </div>
+      <div class="modal-body">
+        <div class="fx-hero">
+          <svg viewBox="0 0 800 180" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+            <defs>
+              <linearGradient id="g1" x1="0" y1="0" x2="1" y2="0">
+                <stop offset="0" stop-color="#00e5ff"/><stop offset="1" stop-color="#7c4dff"/>
+              </linearGradient>
+            </defs>
+            <path class="fx-path" stroke="url(#g1)" d="M10,90 C120,10 220,170 330,90 S540,10 650,90 S760,170 790,90"/>
+          </svg>
+          <div class="fx-badges">
+            <span class="fx-badge">Regime-Detection</span>
+            <span class="fx-badge">Signal-Fusion</span>
+            <span class="fx-badge">Risk-Engine</span>
+            <span class="fx-badge">Reinforcement Learning</span>
+            <span class="fx-badge">Latency-Cache</span>
+            <span class="fx-badge">WASM-Inference</span>
+          </div>
+        </div>
+        <div class="fx-grid" style="margin-top:14px">
+          <div class="fx-card"><h4>⚡ Durchsatz</h4><div class="fx-metric" data-kpi="throughput" data-target="12000">0</div><p class="subtitle">Signale/min (Backtest Peak)</p></div>
+          <div class="fx-card"><h4>⏱️ Latenz</h4><div class="fx-metric" data-kpi="latency" data-target="18">0</div><p class="subtitle">ms Median Inference</p></div>
+          <div class="fx-card"><h4>🛡️ Drawdown-Guard</h4><div class="fx-metric" data-kpi="ddguard" data-target="35">0</div><p class="subtitle">aktive Schutz-Checks</p></div>
+          <div class="fx-card"><h4>🤖 Ensemble</h4><div class="fx-metric" data-kpi="models" data-target="7">0</div><p class="subtitle">Modelle je Signal</p></div>
+          <div class="fx-card"><h4>📡 Coverage</h4><div class="fx-metric" data-kpi="pairs" data-target="32">0</div><p class="subtitle">FX-Paare in Echtzeit</p></div>
+          <div class="fx-card"><h4>🧭 Regime</h4><div class="fx-metric" data-kpi="regimes" data-target="5">0</div><p class="subtitle">Marktregime erkannt</p></div>
+        </div>
+        <div style="margin-top:14px" class="fx-timeline">
+          <div class="fx-node"><strong>Phase I</strong> Baseline-Signals, robuste Daten-Pipeline, Validierung.</div>
+          <div class="fx-node"><strong>Phase II</strong> Ensemble-KI mit Regime-Wechseln, Risiko-Budgetierung.</div>
+          <div class="fx-node"><strong>Phase III</strong> Adaptive Ausführung, Micro-hedging, LLM-Erklärbarkeit.</div>
+        </div>
+      </div>
+      <div class="modal-actions">
+        <button class="btn btn-primary" id="featuresCta">Mehr erfahren</button>
+        <button class="btn btn-ghost" id="featuresPause">Animation pausieren</button>
+      </div>
+      <p class="disclaimer" style="margin-top:8px">Demo-Kennzahlen. Keine Finanzberatung. Live-Kurse siehe Ticker &amp; Chart.</p>
+    </div>
+  </div>
+  <script>/* FEATURES JS */(function(){
+    const btn=document.getElementById("featuresBtn");
+    const modal=document.getElementById("featuresModal");
+    const close=document.getElementById("featuresClose");
+    const pauseBtn=document.getElementById("featuresPause");
+    const cta=document.getElementById("featuresCta");
+    let paused=false, rafId; 
+    function open(e){ if(e) e.preventDefault(); modal.classList.remove("hidden"); modal.setAttribute("aria-hidden","false"); startCounters(); animateHero(); }
+    function hide(){ modal.classList.add("hidden"); modal.setAttribute("aria-hidden","true"); cancelAnimationFrame(rafId); }
+    btn&&btn.addEventListener("click",open); close&&close.addEventListener("click",hide);
+    pauseBtn&&pauseBtn.addEventListener("click",()=>{ paused=!paused; pauseBtn.textContent=paused?"Animation fortsetzen":"Animation pausieren"; });
+    cta&&cta.addEventListener("click",()=>{ document.querySelector("#kontakt")?.scrollIntoView({behavior:"smooth"}); hide(); });
+    /* KPI-Counter */
+    function animateTo(el,target,ms){ const start=performance.now(); const from=0; const dur=ms||900; const fmt=(el.dataset.kpi==="latency"?v=>v.toFixed(0):v=>v.toLocaleString());
+      function tick(t){ const p=Math.min(1,(t-start)/dur); el.textContent=fmt(from+(target-from)*p); if(p<1) requestAnimationFrame(tick);} requestAnimationFrame(tick);}
+    function startCounters(){ document.querySelectorAll(".fx-metric").forEach(el=>{ const tgt=Number(el.dataset.target||0); el.textContent="0"; animateTo(el,tgt,1000+Math.random()*600); }); }
+    /* Hero SVG Glow Animation */
+    function animateHero(){ const path=document.querySelector("#featuresModal .fx-path"); let glow=0; const box=document.querySelector("#featuresModal .modal-box");
+      function loop(){ if(!path||paused) { rafId=requestAnimationFrame(loop); return;} glow = (glow+1)%100; const s=0.5+0.5*Math.sin(glow/10); box.style.boxShadow = `0 0 ${12+12*s}px #00e5ff55, 0 0 ${28+18*s}px #7c4dff33`; rafId=requestAnimationFrame(loop);}
+      rafId=requestAnimationFrame(loop);}
+    /* ESC schließen */
+    document.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && !modal.classList.contains("hidden")) hide(); });
+  })();</script>
 </body>
 </html>
