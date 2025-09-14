@@ -83,6 +83,14 @@
   .fx-node strong{display:block;font-family:Orbitron;margin-bottom:4px}
   @media(max-width:950px){.fx-card{grid-column:span 12}}
 
+  /* FEATURES MODAL */
+  .modal{position:fixed; inset:0; background:rgba(5,10,18,.72); display:flex; align-items:center; justify-content:center; z-index:100}
+  .modal.hidden{display:none}
+  .modal-box{width:min(1000px,92vw); background:#0b121f; border:1px solid #15213a; border-radius:18px; box-shadow:0 0 40px #00e5ff33; padding:14px 16px}
+  .modal-header{display:flex; align-items:center; justify-content:space-between; gap:10px; margin-bottom:10px}
+  .fx-badges{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
+  .fx-badge{font-weight:700; font-size:12px; padding:6px 10px; border-radius:999px; background:#0f192c; border:1px solid #16233f}
+
   </style>
 
   <!-- Zusätzliche Styles fürs Demo-Modal -->
@@ -104,7 +112,7 @@
   <header>
     <nav class="nav">
       <div class="logo"><span class="logo-badge"></span><span>ProfitSolution</span></div>
-      <a href="#features">Funktionen</a>
+      <a id="featuresBtn" href="#features">Funktionen</a>
       <a href="#chart">Markt-Signal</a>
       <a href="#kontakt">Kontakt</a>
       <div class="spacer"></div>
@@ -365,6 +373,17 @@
       rafId=requestAnimationFrame(loop);}
     /* ESC schließen */
     document.addEventListener("keydown",(e)=>{ if(e.key==="Escape" && !modal.classList.contains("hidden")) hide(); });
+  })();</script>
+  <script>/* FEATURES-JS-FALLBACK */(function(){
+    function openModal(){ var m=document.getElementById("featuresModal"); if(!m) return; m.classList.remove("hidden"); m.setAttribute("aria-hidden","false"); }
+    function closeModal(){ var m=document.getElementById("featuresModal"); if(!m) return; m.classList.add("hidden"); m.setAttribute("aria-hidden","true"); }
+    document.addEventListener("click",function(e){
+      var t=e.target.closest("#featuresBtn, a[href="#features"]");
+      if(t){ e.preventDefault(); openModal(); }
+      if(e.target.closest("#featuresClose")){ e.preventDefault(); closeModal(); }
+      if(e.target.matches("#featuresCta")){ e.preventDefault(); document.querySelector("#kontakt")?.scrollIntoView({behavior:"smooth"}); closeModal(); }
+    });
+    document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ closeModal(); } });
   })();</script>
 </body>
 </html>
