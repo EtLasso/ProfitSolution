@@ -91,7 +91,21 @@
   .fx-badges{display:flex; flex-wrap:wrap; gap:8px; margin-top:10px}
   .fx-badge{font-weight:700; font-size:12px; padding:6px 10px; border-radius:999px; background:#0f192c; border:1px solid #16233f}
 
-  </style>
+    /* Mobile tuning */
+  .btn{min-height:44px}
+  .modal-box{max-height:min(90vh,720px); overflow:auto}
+   (max-width: 480px){
+    .nav{padding:10px 12px; gap:10px}
+    .nav a{font-size:14px; padding:8px 8px}
+    .hero{padding:48px 16px 20px; gap:16px}
+    .panel{padding:14px}
+    .title{font-size:clamp(26px,9vw,38px)}
+    #miniChart{height:140px}
+    #mainChart{height:220px}
+    #eurusdSim{height:260px}
+    .card,.chart-card{padding:14px}
+  }
+</style>
 
   <!-- Zusätzliche Styles fürs Demo-Modal -->
   <style>
@@ -124,7 +138,7 @@
   <main>
     <section class="hero">
       <div>
-        <h1 class="title">KI-Forex-Trading. <br>Präziser. Schneller. Futuristisch.</h1>
+        <h1 class="title">Ki.Forex.Trader — Präziser. Schneller.<br>Deine finanzielle Freiheit beginnt hier.</h1>
         <p class="subtitle">ProfitSolution nutzt intelligente Modelle, um Marktregime zu erkennen, Risiken zu steuern und Chancen in Echtzeit zu visualisieren – alles in einem eleganten Interface.</p>
         <div class="cta">
           <button class="btn btn-primary">Kostenlos testen</button>
@@ -203,7 +217,7 @@
     (function(){
       const c = document.getElementById('miniChart');
       const dpr = Math.max(1, window.devicePixelRatio || 1);
-      const w = c.clientWidth, h = 180; c.width = w*dpr; c.height = h*dpr; const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
+      const w = c.clientWidth, h = Math.max(120, Math.min(200, Math.round(window.innerHeight*0.24))); c.width = w*dpr; c.height = h*dpr; const ctx=c.getContext('2d'); ctx.scale(dpr,dpr);
       const N=60, data=[]; let x=1.10; for(let i=0;i<N;i++){ x += (Math.random()-.5)*0.003; data.push(x); }
       const min=Math.min(...data), max=Math.max(...data); const y=v=>h-((v-min)/(max-min))*(h-20)-10, xs=i=>(i/(N-1))*(w-10)+5;
       const grd=ctx.createLinearGradient(0,0,0,h); grd.addColorStop(0,'rgba(0,229,255,.28)'); grd.addColorStop(1,'rgba(124,77,255,.05)');
@@ -249,7 +263,7 @@
       const pip=0.0001, sigma=0.0008;
       const aF=2/(10+1), aS=2/(28+1);
 
-      function resize(){ const h=360; canvas.width=canvas.clientWidth*dpr; canvas.height=h*dpr; ctx=canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); W=canvas.clientWidth; H=h; draw(); }
+      function resize(){ const h = Math.max(220, Math.min(360, Math.round(window.innerHeight*0.45))); canvas.width=canvas.clientWidth*dpr; canvas.height=h*dpr; ctx=canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); W=canvas.clientWidth; H=h; draw(); }
       window.addEventListener('resize', resize);
 
       function step(){
