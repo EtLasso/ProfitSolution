@@ -56,7 +56,7 @@
   function initChart(){
     if(!cMain) return;
     const dpr = Math.max(1, window.devicePixelRatio||1);
-    const w = cMain.clientWidth || 640, h = 280;
+    const w = cMain.clientWidth||640, h = Math.max(200, Math.min(320, Math.round(window.innerHeight*0.34)));
     const ctx = cMain.getContext('2d');
     cMain.width = w*dpr; cMain.height = h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
     // Erstbefüllung
@@ -72,7 +72,7 @@
   function drawChart(){
     if(!cMain) return;
     const dpr = Math.max(1, window.devicePixelRatio||1);
-    const w = cMain.clientWidth || 640, h = 280;
+    const w = cMain.clientWidth||640, h = Math.max(200, Math.min(320, Math.round(window.innerHeight*0.34)));
     const ctx = cMain.getContext('2d');
     cMain.width = w*dpr; cMain.height = h*dpr; ctx.setTransform(dpr,0,0,dpr,0,0);
     ctx.clearRect(0,0,w,h);
