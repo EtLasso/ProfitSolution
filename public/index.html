@@ -142,6 +142,22 @@
   .metric{font-size:22px;font-weight:800;text-shadow:0 0 12px #00e5ff55}
   @media(max-width:950px){.kpi-sig{grid-column:span 6}}
   @media(max-width:600px){.kpi-sig{grid-column:span 12}}
+  /* SIG PRO CSS */
+  .sig-pro{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin:12px 0 8px}
+  .pro-col{grid-column:span 4;background:#0b121f;border:1px solid #15213a;border-radius:14px;box-shadow:inset 0 1px 0 #1a2743;padding:12px}
+  .pro-col h4{margin:0 0 8px;font-family:Orbitron}
+  .plan-card .row{display:grid;grid-template-columns:110px 1fr;gap:8px;margin:6px 0}
+  .badge{display:inline-block;padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;background:#0f192c;border:1px solid #16233f;color:#cfe0ff;margin-right:6px}
+  .rr{font-weight:800}
+  .heatmap{display:grid;grid-template-columns:80px repeat(4,1fr);gap:6px}
+  .cell{border:1px solid #16233f;border-radius:10px;padding:8px;text-align:center;font-weight:700}
+  .c-head{background:#0e1423}
+  .c-long{background:linear-gradient(180deg,#0e2b1a,#0b121f);color:#18e39f}
+  .c-short{background:linear-gradient(180deg,#2b0e19,#0b121f);color:#ff5e7e}
+  .c-hold{background:#0e1423;color:#86a8ff}
+  .muted{color:#a2b3c5}
+  @media(max-width:1100px){ .pro-col{grid-column:span 6} }
+  @media(max-width:650px){ .pro-col{grid-column:span 12} .plan-card .row{grid-template-columns:1fr} }
 </style>
 
   <!-- Zusätzliche Styles fürs Demo-Modal -->
@@ -532,6 +548,31 @@
           <div class="kpi-sig"><h4>Modelle im Ensemble</h4><div class="metric" id="sigKpiModels">–</div></div>
         </div>
         <div class="sig-toolbar">
+        <div class="sig-pro" id="sigProWrap">
+          <section class="pro-col">
+            <h4>Top-Chancen</h4>
+            <div class="sig-insights" id="sigInsights"></div>
+          </section>
+          <section class="pro-col">
+            <h4>Trade-Plan</h4>
+            <div id="sigPlan" class="plan-card">
+              <div class="row"><div>Pair</div><div id="plPair" class="rr">–</div></div>
+              <div class="row"><div>Richtung</div><div id="plDir">–</div></div>
+              <div class="row"><div>Entry</div><div id="plEntry">–</div></div>
+              <div class="row"><div>Stop</div><div id="plStop">–</div></div>
+              <div class="row"><div>Target</div><div id="plTarget">–</div></div>
+              <div class="row"><div>Risikoprofil</div><div id="plRR">–</div></div>
+              <div class="row"><div>Zeithorizont</div><div id="plTF">–</div></div>
+              <div class="row"><div>Notiz</div><div id="plNote" class="muted">–</div></div>
+              <div style="margin-top:8px"><span class="badge" id="plRegime">Regime: –</span><span class="badge" id="plConf">Confidence: –</span></div>
+            </div>
+          </section>
+          <section class="pro-col">
+            <h4>Volatilitäts-Heatmap</h4>
+            <div id="sigHeatmap" class="heatmap"></div>
+            <p class="muted" style="margin:6px 0 0">Grün = Long-Bias, Rot = Short-Bias, Blau = neutral</p>
+          </section>
+        </div>
           <span class="sig-badge" id="sigStatus">Aktualisierung: alle 2 s</span>
           <button class="btn" id="sigExport">CSV exportieren</button>
           <button class="btn" id="sigReseed">Neu würfeln</button>
