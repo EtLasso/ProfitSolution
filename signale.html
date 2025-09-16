@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <title>Markt-Signale — ProfitSolution</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
+  <style>
+    :root{--bg:#0b0f16;--txt:#e6f2ff;--muted:#a2b3c5;--b:#15213a;--brand:#00e5ff;--ok:#18e39f;--bad:#ff5e7e;}
+    *{box-sizing:border-box}
+    body{margin:0;background:radial-gradient(1200px 1200px at 80% -10%, #0e1a2b 0%, #0b0f16 40%) no-repeat, var(--bg);color:var(--txt);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial;}
+    header{position:sticky;top:0;backdrop-filter:saturate(140%) blur(10px);background:linear-gradient(180deg,#0b0f16ee,#0b0f16cc);border-bottom:1px solid #111a2f;z-index:10;}
+    .nav{max-width:1200px;margin:0 auto;padding:14px 20px;display:flex;align-items:center;gap:16px}
+    .logo{font-family:Orbitron,Inter,sans-serif;font-weight:700;letter-spacing:.5px;display:flex;align-items:center;gap:10px}
+    .logo-badge{width:22px;height:22px;border-radius:7px;background:conic-gradient(from 200deg,var(--brand),#7c4dff,var(--brand));box-shadow:0 0 30px #00e5ff55}
+    .spacer{flex:1}
+    a.navlink{color:var(--muted);text-decoration:none;font-weight:600;padding:8px 10px;border-radius:10px} a.navlink:hover{color:var(--txt);background:#10182a}
+    .btn{appearance:none;border:none;cursor:pointer;font-weight:700;padding:10px 14px;border-radius:12px;background:#0f192c;border:1px solid #16233f;color:var(--txt)}
+    .btn-primary{background:linear-gradient(135deg,var(--brand),#7c4dff);color:#07121d;box-shadow:0 6px 22px #00e5ff2a;border:none}
+    main{max-width:1200px;margin:0 auto;padding:26px 20px 60px}
+    h1{font-family:Orbitron,Inter,sans-serif;margin:0 0 10px;text-shadow:0 0 20px #00e5ff44}
+    .sub{color:var(--muted);margin:0 0 18px}
+    .panel{border:1px solid var(--b);border-radius:18px;background:#0b121f;box-shadow:inset 0 1px 0 #1a2743;padding:16px}
+    .bar{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+    .tag{background:#0f192c;border:1px solid #16233f;color:#cfe0ff;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+    table{width:100%;border-collapse:separate;border-spacing:0;overflow:hidden;border-radius:16px;border:1px solid var(--b);background:#0b121f}
+    thead th{position:sticky;top:0;background:#0e1423;border-bottom:1px solid var(--b);text-align:left;font-weight:800;padding:12px;white-space:nowrap}
+    tbody td{padding:12px;border-bottom:1px solid #111a2f}
+    tr:hover td{background:#0e1628}
+    .sig-long{color:var(--ok);font-weight:800} .sig-short{color:var(--bad);font-weight:800} .sig-hold{color:#86a8ff;font-weight:800}
+    .grid{display:grid;grid-template-columns:repeat(12,1fr);gap:14px;margin-top:16px}
+    .kpi{grid-column:span 3} .kpi h4{margin:0 0 6px;font-family:Orbitron} .metric{font-size:24px;font-weight:800;text-shadow:0 0 12px #00e5ff55}
+    @media(max-width:950px){.kpi{grid-column:span 6}} @media(max-width:600px){.kpi{grid-column:span 12}}
+    footer{margin-top:22px;color:#8fa3bb}
+    .small{font-size:12px;color:#9bb0c9}
+  </style>
+</head>
+<body>
+<header>
+  <nav class="nav">
+    <div class="logo"><span class="logo-badge"></span><a href="index.html" class="navlink" style="padding:0 0 0 2px">ProfitSolution</a></div>
+    <a href="signale.html" class="navlink" aria-current="page">Markt-Signale</a>
+    <div class="spacer"></div>
+    <a href="index.html#kontakt" class="btn">Kontakt</a>
+    <a href="index.html" class="btn btn-primary">Zur Startseite</a>
+  </nav>
+</header>
+
+<main>
+  <h1>Markt-Signale (Demo)</h1>
+  <p class="sub">Simulierte KI-Auswertung mehrerer FX-Paare. Live-Handel ist deaktiviert (Demo-Daten). Keine Finanzberatung.</p>
+
+  <div class="panel">
+    <div class="bar">
+      <span class="tag" id="statusTag">Aktualisierung: alle 2 s</span>
+      <button class="btn" id="btnExport">CSV exportieren</button>
+      <button class="btn" id="btnReseed">Neu würfeln</button>
+    </div>
+
+    <div class="grid">
+      <div class="panel kpi"><h4>Trefferquote (Backtest)</h4><div class="metric" id="kpiHit">–</div></div>
+      <div class="panel kpi"><h4>Ø Chance:Risiko</h4><div class="metric" id="kpiCRV">–</div></div>
+      <div class="panel kpi"><h4>Ø Haltedauer</h4><div class="metric" id="kpiHold">–</div></div>
+      <div class="panel kpi"><h4>Modelle im Ensemble</h4><div class="metric" id="kpiModels">–</div></div>
+    </div>
+
+    <div style="margin-top:16px; overflow:auto">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>Paar</th><th>Signal</th><th>Stärke</th><th>WKT</th><th>Regime</th>
+            <th>Entry</th><th>Stop</th><th>Target</th><th>Horizont</th><th>Confidence</th><th>Letzte Aktualisierung</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+    <p class="small" style="margin-top:12px">
+      Hinweis: Alle Angaben sind simuliert (Demo). Keine Anlage-/Handelsempfehlung. Nur zu Demonstrationszwecken.
+    </p>
+  </div>
+
+  <footer>
+    <p class="small"><a href="impressum.html">Impressum</a></p>
+  </footer>
+</main>
+
+<script>
+(function(){
+  // --- Demo-Generator ---
+  const PAIRS = ['EURUSD','GBPUSD','USDJPY','AUDUSD','USDCHF','NZDUSD','USDCAD','EURJPY'];
+  let seed = Math.floor(Date.now()/60000); // 1-Minuten-Seed
+  function srand(){ // Simple pseudo-RNG
+    seed = (seed * 1664525 + 1013904223) % 4294967296; return seed / 4294967296;
+  }
+  function pick(arr){ return arr[Math.floor(srand()*arr.length)] }
+
+  function genRow(sym){
+    // Basiskurs (nur kosmetisch)
+    const base = { EURUSD:1.10, GBPUSD:1.28, USDJPY:147.2, AUDUSD:0.67, USDCHF:0.89, NZDUSD:0.615, USDCAD:1.312, EURJPY:162.4 }[sym] || 1.0;
+    const dir = pick(['LONG','SHORT','HOLD']);
+    const strength = Math.round(40 + srand()*60);
+    const prob = Math.round(50 + srand()*45);
+    const conf = (0.50 + srand()*0.45).toFixed(2);
+    const regime = pick(['Trend','Range','Volatil']);
+    const tf = pick(['M5','M15','M30','H1']);
+    const px = base * (0.98 + srand()*0.04);
+    const atr = base * (sym.endsWith('JPY') ? 0.0015 : 0.0010);
+    let entry=px, stop=px, tgt=px;
+    if(dir==='LONG'){ entry=px; stop=px-atr; tgt=px+1.8*atr; }
+    if(dir==='SHORT'){ entry=px; stop=px+atr; tgt=px-1.8*atr; }
+    const fmt = v => (v>10? v.toFixed(2): v.toFixed(4));
+    return {
+      sym, dir, strength, prob, regime, entry:fmt(entry), stop:fmt(stop), tgt:fmt(tgt), tf, conf,
+      ts: new Date().toLocaleTimeString()
+    };
+  }
+
+  const $ = sel => document.querySelector(sel);
+  const tbody = $('#tbl tbody');
+
+  function render(){
+    const rows = PAIRS.map(genRow);
+    tbody.innerHTML = rows.map(r => `
+      <tr>
+        <td><strong>${r.sym.slice(0,3)}/${r.sym.slice(3)}</strong></td>
+        <td class="${r.dir==='LONG'?'sig-long':r.dir==='SHORT'?'sig-short':'sig-hold'}">${r.dir}</td>
+        <td>${r.strength}/100</td>
+        <td>${r.prob}%</td>
+        <td>${r.regime}</td>
+        <td>${r.entry}</td>
+        <td>${r.stop}</td>
+        <td>${r.tgt}</td>
+        <td>${r.tf}</td>
+        <td>${r.conf}</td>
+        <td>${r.ts}</td>
+      </tr>
+    `).join('');
+
+    // KPIs
+    $('#kpiHit').textContent   = (55 + Math.round(srand()*10)) + ' %';
+    $('#kpiCRV').textContent   = (1.2 + srand()*0.8).toFixed(2) + ' : 1';
+    $('#kpiHold').textContent  = pick(['12 min','25 min','48 min','1.5 h','3 h']);
+    $('#kpiModels').textContent= String(5 + Math.floor(srand()*4));
+  }
+
+  render();
+  let t = setInterval(render, 2000);
+
+  $('#btnExport').addEventListener('click', ()=>{
+    const lines = [['Pair','Signal','Strength','Prob','Regime','Entry','Stop','Target','TF','Confidence','Updated']];
+    [...tbody.querySelectorAll('tr')].forEach(tr=>{
+      const tds = [...tr.children].map(td=>td.textContent.trim());
+      lines.push(tds);
+    });
+    const csv = lines.map(a=>a.map(x=>`"${x.replace(/"/g,'""')}"`).join(',')).join('\n');
+    const blob = new Blob([csv], {type:'text/csv;charset=utf-8;'});
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'profitsolution_signale.csv'; a.click();
+  });
+
+  $('#btnReseed').addEventListener('click', ()=>{
+    seed = Math.floor(Date.now()/1000); render();
+  });
+})();
+</script>
+</body>
+</html>
