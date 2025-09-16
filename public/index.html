@@ -185,6 +185,19 @@
     .hero{ padding:46px 0 18px; }
   }
   @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important } }
+  /* MOBILE NAV & MODAL */
+  html.no-scroll, body.no-scroll{ overflow:hidden; }
+  .hamburger{ display:none; align-items:center; justify-content:center; width:44px; height:44px; font-size:22px; border-radius:12px; border:1px solid #16233f; background:#0f192c; color:#e6f2ff; }
+  .drawer{ position:fixed; inset:0; background:rgba(7,12,20,.65); backdrop-filter:blur(8px); z-index:120; display:none; }
+  .drawer.open{ display:block; }
+  .drawer-panel{ position:absolute; right:0; top:0; width:min(86vw,360px); height:100dvh; padding:calc(env(safe-area-inset-top)+14px) 16px calc(env(safe-area-inset-bottom)+18px);
+    background:#0b121f; border-left:1px solid #15213a; box-shadow:-12px 0 40px #0007; overflow:auto; }
+  .drawer a{ display:block; padding:12px 10px; margin:6px 0; border-radius:12px; color:#cfe0ff; text-decoration:none; background:#0f192c; border:1px solid #16233f; }
+  @media (max-width: 860px){ .nav a.navlink, .nav a.btn{ display:none; } .hamburger{ display:inline-flex; } }
+  /* Modal auf Handy: Fullscreen-fit */
+  @media (max-width: 650px){
+    .modal.mobile-full .modal-box{ width:100vw; max-width:none; height:100dvh; max-height:none; border-radius:0; padding:12px; }
+  }
 </style>
 
   <!-- Zusätzliche Styles fürs Demo-Modal -->
@@ -212,8 +225,17 @@
       <div class="spacer"></div>
       <button class="btn btn-ghost">Login</button>
       <button class="btn btn-primary">Jetzt starten</button>
+    <button class="hamburger" id="navToggle" aria-expanded="false" aria-controls="navDrawer" aria-label="Menü öffnen">☰</button>
     </nav>
   </header>
+<div id="navDrawer" class="drawer" aria-hidden="true">
+  <div class="drawer-panel">
+    <a href="index.html">Start</a>
+    <a href="#signals">Markt-Signale</a>
+    <a href="#funktionen">Funktionen</a>
+    <a href="impressum.html">Impressum</a>
+  </div>
+</div>
 
   <main>
     <section class="hero">
@@ -610,6 +632,30 @@
     window.addEventListener("DOMContentLoaded", sizeAll); 
     window.addEventListener("resize", debounce(sizeAll,150)); 
     window.addEventListener("orientationchange", sizeAll); 
+  })();</script>
+  <script>/* MOBILE NAV JS */(function(){
+    window.addEventListener("DOMContentLoaded",function(){
+      var btn=document.getElementById("navToggle"); var dr=document.getElementById("navDrawer");
+      function open(){ if(!dr) return; dr.classList.add("open"); dr.setAttribute("aria-hidden","false"); btn&&btn.setAttribute("aria-expanded","true"); document.documentElement.classList.add("no-scroll"); }
+      function close(){ if(!dr) return; dr.classList.remove("open"); dr.setAttribute("aria-hidden","true"); btn&&btn.setAttribute("aria-expanded","false"); document.documentElement.classList.remove("no-scroll"); }
+      btn&&btn.addEventListener("click",function(){ (dr&&dr.classList.contains("open"))?close():open(); });
+      document.addEventListener("click",function(e){ if(!dr||!dr.classList.contains("open")) return; if(e.target===dr) close(); if(e.target.closest(".drawer a")) close(); });
+      document.addEventListener("keydown",function(e){ if(e.key==="Escape") close(); });
+      window.__psCloseDrawer=close;
+    });
+  })();</script>
+  <script>/* MODAL MOBILE-FULL JS */(function(){
+    function adapt(m){ if(!m) return; var small = window.innerWidth <= 650; m.classList.toggle("mobile-full", small); }
+    window.addEventListener("DOMContentLoaded",function(){
+      var mSignals=document.getElementById("signalsModal");
+      function onResize(){ adapt(mSignals);}
+      window.addEventListener("resize", onResize); window.addEventListener("orientationchange", onResize);
+      onResize();
+      if(window.__psOpenSignals){ var old=window.__psOpenSignals; window.__psOpenSignals=function(e){ if(e) e.preventDefault(); adapt(mSignals); if(typeof window.__psCloseDrawer===function) window.__psCloseDrawer(); return old(e); }; }
+      /* Optional: Funktionen-Modal analog erfassen, falls vorhanden */
+      var mFeat=document.getElementById("featuresModal");
+      if(mFeat){ document.addEventListener("click",function(e){ if(e.target.closest("#featuresBtn, a[href=\#funktionen]")){ adapt(mFeat); if(typeof window.__psCloseDrawer===function) window.__psCloseDrawer(); } }); }
+    });
   })();</script>
 </body>
   <script>/* SIG DATA ENGINE (v2) */
