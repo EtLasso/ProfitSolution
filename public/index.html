@@ -458,7 +458,6 @@
     const close=document.getElementById("signalsClose");
     const tbody=document.getElementById("sigTbody");
     const btnExport=document.getElementById("sigExport");
-    const btnReseed=document.getElementById("sigReseed");
     let timer=null, seed=Math.floor(Date.now()/60000);
     const PAIRS=["EURUSD","GBPUSD","USDJPY","AUDUSD","USDCHF","NZDUSD","USDCAD","EURJPY"];
     function srand(){ seed=(seed*1664525+1013904223)%4294967296; return seed/4294967296; }
@@ -489,7 +488,6 @@
     const closeBtn=document.getElementById("signalsClose");
     const tbody=document.getElementById("sigTbody");
     const btnExport=document.getElementById("sigExport");
-    const btnReseed=document.getElementById("sigReseed");
     let timer=null, seed=Math.floor(Date.now()/60000);
     const PAIRS=["EURUSD","GBPUSD","USDJPY","AUDUSD","USDCHF","NZDUSD","USDCAD","EURJPY"];
     function srand(){ seed=(seed*1664525+1013904223)%4294967296; return seed/4294967296; }
@@ -570,6 +568,208 @@
     });
   })();</script>
 </body>
+  <script>/* SIG DATA ENGINE */(function(){
+    window.addEventListener("DOMContentLoaded",function(){
+      var tb = document.getElementById("sigTbody");
+      var status = document.getElementById("sigStatus");
+      var modal = document.getElementById("signalsModal");
+      if(!tb) return;
+
+      var PAIRS = ["EURUSD","GBPUSD","USDJPY","AUDUSD","USDCHF","NZDUSD","USDCAD","EURJPY"];
+      var BASE  = {EURUSD:1.1000, GBPUSD:1.2800, USDJPY:147.20, AUDUSD:0.6700, USDCHF:0.8890, NZDUSD:0.6150, USDCAD:1.3120, EURJPY:162.40};
+      var TFs   = ["M5","M15","M30","H1"];
+      var seed  = Math.floor(Date.now()/60000);
+
+      function sr(){ seed = (seed*1664525+1013904223) % 4294967296; return seed/4294967296; }
+      function pick(a){ return a[Math.floor(sr()*a.length)] }
+      function pip(sym){ return /JPY$/.test(sym) ? 0.01 : 0.0001; }
+
+      // Datensatz erzeugen
+      var rows = PAIRS.map(makeRow);
+
+      function makeRow(sym){
+        var dir = pick(["LONG","SHORT","HOLD"]);
+        var base = BASE[sym] || 1;
+        var px = base * (0.985 + sr()*0.03);
+        var atr = base * (pip(sym) * (/JPY$/.test(sym)?150:180)); // grob
+        var en=px, stp=px, tgt=px;
+        if(dir==="LONG"){ stp=en-atr; tgt=en+1.8*atr; }
+        if(dir==="SHORT"){ stp=en+atr; tgt=en-1.8*atr; }
+        var strength = Math.round(55 + sr()*35);
+        var prob     = Math.round(55 + sr()*30);
+        var conf     = (0.55 + sr()*0.35);
+        var tf       = pick(TFs);
+        var regime   = pick(["Trend","Range","Volatil"]);
+        return {sym:sym, dir:dir, strength:strength, prob:prob, regime:regime,
+                en:en, stp:stp, tgt:tgt, tf:tf, conf:conf};
+      }
+
+      // leichtes "Leben" alle 2 s
+      function tick(){
+        rows.forEach(function(r,i){
+          // sanfte Schwankung
+          var drift = (sr()-0.5) * pip(r.sym) * (/JPY$/.test(r.sym)?10:100);
+          r.en  = Math.max( pip(r.sym), r.en  + drift);
+          r.stp = r.dir==="LONG" ? Math.min(r.stp, r.en -  (1.0+sr()*0.3)*pip(r.sym)*(/JPY$/.test(r.sym)?80:120))
+                                 : Math.max(r.stp, r.en +  (1.0+sr()*0.3)*pip(r.sym)*(/JPY$/.test(r.sym)?80:120));
+          r.tgt = r.dir==="LONG" ? Math.max(r.tgt, r.en +  (1.6+sr()*0.5)*pip(r.sym)*(/JPY$/.test(r.sym)?140:220))
+                                 : Math.min(r.tgt, r.en -  (1.6+sr()*0.5)*pip(r.sym)*(/JPY$/.test(r.sym)?140:220));
+          // Signalqualität sanft variieren
+          r.strength = Math.max(40, Math.min(95, r.strength + Math.round((sr()-0.5)*6)));
+          r.prob     = Math.max(50, Math.min(90, r.prob     + Math.round((sr()-0.5)*5)));
+          r.conf     = Math.max(0.50,Math.min(0.95, r.conf  + (sr()-0.5)*0.04));
+          // seltene Richtungswechsel bei schwachem Signal
+          if(r.strength < 58 && sr() > 0.92){
+            r.dir = r.dir==="LONG" ? "SHORT" : (r.dir==="SHORT" ? "HOLD" : "LONG");
+            // Ziel/Stop neu setzen relativ zum neuen Entry
+            var atr = (Math.abs(r.en) || BASE[r.sym]) * pip(r.sym) * (/JPY$/.test(r.sym)?150:180);
+            if(r.dir==="LONG"){ r.stp=r.en-atr; r.tgt=r.en+1.8*atr; }
+            if(r.dir==="SHORT"){ r.stp=r.en+atr; r.tgt=r.en-1.8*atr; }
+          }
+        });
+      }
+
+      function fmt(sym,v){ return v>10 ? v.toFixed(2) : v.toFixed(4); }
+
+      function render(){
+        var html = rows.map(function(r){
+          var pair = r.sym.slice(0,3)+"/"+r.sym.slice(3);
+          var cls  = r.dir==="LONG" ? "sig-long" : (r.dir==="SHORT" ? "sig-short" : "sig-hold");
+          var now  = new Date().toLocaleTimeString();
+          return '<tr>'
+            + '<td><strong>'+pair+'</strong></td>'
+            + '<td class="'+cls+'">'+r.dir+'</td>'
+            + '<td>'+r.strength+'/100</td>'
+            + '<td>'+r.prob+'%</td>'
+            + '<td>'+r.regime+'</td>'
+            + '<td>'+fmt(r.sym,r.en)+'</td>'
+            + '<td>'+fmt(r.sym,r.stp)+'</td>'
+            + '<td>'+fmt(r.sym,r.tgt)+'</td>'
+            + '<td>'+r.tf+'</td>'
+            + '<td>'+r.conf.toFixed(2)+'</td>'
+            + '<td>'+now+'</td>'
+            + '</tr>';
+        }).join('');
+        tb.innerHTML = html; // triggert MutationObserver für KPIs/Insights/Heatmap
+        if(status){ status.textContent = "Aktualisierung: alle 2 s (Demo) · "+new Date().toLocaleTimeString(); }
+      }
+
+      // initial befüllen & periodisch updaten
+      render();
+      setInterval(function(){ tick(); render(); }, 2000);
+
+      // Öffnen: Modal zeigen & frisches Render erzwingen
+      window.__psOpenSignals = (function(old){
+        return function(e){
+          if(e) e.preventDefault();
+          if(modal){ modal.classList.remove("hidden"); modal.setAttribute("aria-hidden","false"); }
+          render();
+          if(typeof old==="function"){ try{ old(e); }catch(_){ } }
+        };
+      })(window.__psOpenSignals);
+    });
+  })();</script>
+  <script>/* SIG DATA ENGINE */(function(){
+    window.addEventListener("DOMContentLoaded",function(){
+      var tb = document.getElementById("sigTbody");
+      var status = document.getElementById("sigStatus");
+      var modal = document.getElementById("signalsModal");
+      if(!tb) return;
+
+      var PAIRS = ["EURUSD","GBPUSD","USDJPY","AUDUSD","USDCHF","NZDUSD","USDCAD","EURJPY"];
+      var BASE  = {EURUSD:1.1000, GBPUSD:1.2800, USDJPY:147.20, AUDUSD:0.6700, USDCHF:0.8890, NZDUSD:0.6150, USDCAD:1.3120, EURJPY:162.40};
+      var TFs   = ["M5","M15","M30","H1"];
+      var seed  = Math.floor(Date.now()/60000);
+
+      function sr(){ seed = (seed*1664525+1013904223) % 4294967296; return seed/4294967296; }
+      function pick(a){ return a[Math.floor(sr()*a.length)] }
+      function pip(sym){ return /JPY$/.test(sym) ? 0.01 : 0.0001; }
+
+      // Datensatz erzeugen
+      var rows = PAIRS.map(makeRow);
+
+      function makeRow(sym){
+        var dir = pick(["LONG","SHORT","HOLD"]);
+        var base = BASE[sym] || 1;
+        var px = base * (0.985 + sr()*0.03);
+        var atr = base * (pip(sym) * (/JPY$/.test(sym)?150:180)); // grob
+        var en=px, stp=px, tgt=px;
+        if(dir==="LONG"){ stp=en-atr; tgt=en+1.8*atr; }
+        if(dir==="SHORT"){ stp=en+atr; tgt=en-1.8*atr; }
+        var strength = Math.round(55 + sr()*35);
+        var prob     = Math.round(55 + sr()*30);
+        var conf     = (0.55 + sr()*0.35);
+        var tf       = pick(TFs);
+        var regime   = pick(["Trend","Range","Volatil"]);
+        return {sym:sym, dir:dir, strength:strength, prob:prob, regime:regime,
+                en:en, stp:stp, tgt:tgt, tf:tf, conf:conf};
+      }
+
+      // leichtes "Leben" alle 2 s
+      function tick(){
+        rows.forEach(function(r,i){
+          // sanfte Schwankung
+          var drift = (sr()-0.5) * pip(r.sym) * (/JPY$/.test(r.sym)?10:100);
+          r.en  = Math.max( pip(r.sym), r.en  + drift);
+          r.stp = r.dir==="LONG" ? Math.min(r.stp, r.en -  (1.0+sr()*0.3)*pip(r.sym)*(/JPY$/.test(r.sym)?80:120))
+                                 : Math.max(r.stp, r.en +  (1.0+sr()*0.3)*pip(r.sym)*(/JPY$/.test(r.sym)?80:120));
+          r.tgt = r.dir==="LONG" ? Math.max(r.tgt, r.en +  (1.6+sr()*0.5)*pip(r.sym)*(/JPY$/.test(r.sym)?140:220))
+                                 : Math.min(r.tgt, r.en -  (1.6+sr()*0.5)*pip(r.sym)*(/JPY$/.test(r.sym)?140:220));
+          // Signalqualität sanft variieren
+          r.strength = Math.max(40, Math.min(95, r.strength + Math.round((sr()-0.5)*6)));
+          r.prob     = Math.max(50, Math.min(90, r.prob     + Math.round((sr()-0.5)*5)));
+          r.conf     = Math.max(0.50,Math.min(0.95, r.conf  + (sr()-0.5)*0.04));
+          // seltene Richtungswechsel bei schwachem Signal
+          if(r.strength < 58 && sr() > 0.92){
+            r.dir = r.dir==="LONG" ? "SHORT" : (r.dir==="SHORT" ? "HOLD" : "LONG");
+            // Ziel/Stop neu setzen relativ zum neuen Entry
+            var atr = (Math.abs(r.en) || BASE[r.sym]) * pip(r.sym) * (/JPY$/.test(r.sym)?150:180);
+            if(r.dir==="LONG"){ r.stp=r.en-atr; r.tgt=r.en+1.8*atr; }
+            if(r.dir==="SHORT"){ r.stp=r.en+atr; r.tgt=r.en-1.8*atr; }
+          }
+        });
+      }
+
+      function fmt(sym,v){ return v>10 ? v.toFixed(2) : v.toFixed(4); }
+
+      function render(){
+        var html = rows.map(function(r){
+          var pair = r.sym.slice(0,3)+"/"+r.sym.slice(3);
+          var cls  = r.dir==="LONG" ? "sig-long" : (r.dir==="SHORT" ? "sig-short" : "sig-hold");
+          var now  = new Date().toLocaleTimeString();
+          return '<tr>'
+            + '<td><strong>'+pair+'</strong></td>'
+            + '<td class="'+cls+'">'+r.dir+'</td>'
+            + '<td>'+r.strength+'/100</td>'
+            + '<td>'+r.prob+'%</td>'
+            + '<td>'+r.regime+'</td>'
+            + '<td>'+fmt(r.sym,r.en)+'</td>'
+            + '<td>'+fmt(r.sym,r.stp)+'</td>'
+            + '<td>'+fmt(r.sym,r.tgt)+'</td>'
+            + '<td>'+r.tf+'</td>'
+            + '<td>'+r.conf.toFixed(2)+'</td>'
+            + '<td>'+now+'</td>'
+            + '</tr>';
+        }).join('');
+        tb.innerHTML = html; // triggert MutationObserver für KPIs/Insights/Heatmap
+        if(status){ status.textContent = "Aktualisierung: alle 2 s (Demo) · "+new Date().toLocaleTimeString(); }
+      }
+
+      // initial befüllen & periodisch updaten
+      render();
+      setInterval(function(){ tick(); render(); }, 2000);
+
+      // Öffnen: Modal zeigen & frisches Render erzwingen
+      window.__psOpenSignals = (function(old){
+        return function(e){
+          if(e) e.preventDefault();
+          if(modal){ modal.classList.remove("hidden"); modal.setAttribute("aria-hidden","false"); }
+          render();
+          if(typeof old==="function"){ try{ old(e); }catch(_){ } }
+        };
+      })(window.__psOpenSignals);
+    });
+  })();</script>
   <!-- SIGNALS MODAL -->
   <div id="signalsModal" class="modal hidden" aria-hidden="true" role="dialog" aria-label="Markt-Signale">
     <div class="modal-box">
@@ -610,9 +810,8 @@
             <p class="muted" style="margin:6px 0 0">Grün = Long-Bias, Rot = Short-Bias, Blau = neutral</p>
           </section>
         </div>
-          <span class="sig-badge" id="sigStatus">Aktualisierung: alle 2 s</span>
+          <span class="sig-badge" id="sigStatus">Aktualisierung: alle 2 s (Demo)</span>
           <button class="btn" id="sigExport">CSV exportieren</button>
-          <button class="btn" id="sigReseed">Neu würfeln</button>
         </div>
         <div class="sig-wrap">
           <table class="sig" id="sigTable">
