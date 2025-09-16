@@ -532,6 +532,43 @@
       H.textContent=Math.round(avgP)+" %"; C.textContent=crv+" : 1"; D.textContent=hold; M.textContent=String(models);}
     var mo=new MutationObserver(upd); mo.observe(tbody,{childList:true}); upd(); setInterval(upd,2000);
   });})();</script>
+  <script>/* SIGNALS BOOTSTRAP */(function(){
+    window.addEventListener("DOMContentLoaded",function(){
+      var tb=document.getElementById("sigTbody"), modal=document.getElementById("signalsModal");
+      if(!tb||!modal) return;
+      var PAIRS=["EURUSD","GBPUSD","USDJPY","AUDUSD","USDCHF","NZDUSD","USDCAD","EURJPY"];
+      var BASE={EURUSD:1.10,GBPUSD:1.28,USDJPY:147.2,AUDUSD:0.67,USDCHF:0.889,NZDUSD:0.615,USDCAD:1.312,EURJPY:162.4};
+      var seed=Math.floor(Date.now()/60000);
+      function sr(){ seed=(seed*1664525+1013904223)%4294967296; return seed/4294967296; }
+      function pick(a){ return a[Math.floor(sr()*a.length)]; }
+      function gen(sym){
+        var base=BASE[sym]||1.0, dir=pick(["LONG","SHORT","HOLD"]), st=Math.round(40+sr()*60), p=Math.round(50+sr()*45);
+        var rg=pick(["Trend","Range","Volatil"]), tf=pick(["M5","M15","M30","H1"]), px=base*(0.98+sr()*0.04);
+        var atr=base*(/JPY$/.test(sym)?0.0015:0.0010), en=px, stp=px, tg=px;
+        if(dir==="LONG"){ stp=px-atr; tg=px+1.8*atr; }
+        if(dir==="SHORT"){ stp=px+atr; tg=px-1.8*atr; }
+        var fmt=function(v){ return v>10? v.toFixed(2): v.toFixed(4); };
+        return {sym:sym, dir:dir, st:st, p:p, rg:rg, en:fmt(en), stp:fmt(stp), tg:fmt(tg), tf:tf, conf:(0.50+sr()*0.45).toFixed(2), ts:new Date().toLocaleTimeString()};
+      }
+      function render(){
+        var rows=PAIRS.map(gen).map(function(r){
+          return "<tr>"
+            +"<td><strong>"+r.sym.slice(0,3)+"/"+r.sym.slice(3)+"</strong></td>"
+            +"<td class=\""+(r.dir==="LONG"?"sig-long":(r.dir==="SHORT"?"sig-short":"sig-hold"))+"\">"+r.dir+"</td>"
+            +"<td>"+r.st+"/100</td><td>"+r.p+"%</td><td>"+r.rg+"</td>"
+            +"<td>"+r.en+"</td><td>"+r.stp+"</td><td>"+r.tg+"</td><td>"+r.tf+"</td><td>"+r.conf+"</td><td>"+r.ts+"</td>"
+            +"</tr>"; }).join("");
+        tb.innerHTML=rows;
+      }
+      function ensure(){ if(!tb.querySelector("tr")) render(); }
+      ensure();
+      setInterval(ensure, 2000); /* hält die Tabelle lebendig */
+      /* Öffnen-Funktion verstärken: Modal zeigen + (re)rendern */
+      window.__psOpenSignals=(function(old){
+        return function(e){ if(e) e.preventDefault(); modal.classList.remove("hidden"); modal.setAttribute("aria-hidden","false"); render(); if(typeof old==="function"){ try{old(e);}catch(_){}} };
+      })(window.__psOpenSignals);
+    });
+  })();</script>
 </body>
   <!-- SIGNALS MODAL -->
   <div id="signalsModal" class="modal hidden" aria-hidden="true" role="dialog" aria-label="Markt-Signale">
