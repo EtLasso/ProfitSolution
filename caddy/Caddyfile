@@ -1,0 +1,6 @@
+your-domain.tld {
+  encode gzip
+  handle_path / {
+    reverse_proxy web:80
+  }
+}
