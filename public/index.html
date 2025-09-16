@@ -568,11 +568,12 @@
     });
   })();</script>
 </body>
-  <script>/* SIG DATA ENGINE */(function(){
+  <script>/* SIG DATA ENGINE (v2) */
+  (function(){
     window.addEventListener("DOMContentLoaded",function(){
-      var tb = document.getElementById("sigTbody");
+      var tb     = document.getElementById("sigTbody");
       var status = document.getElementById("sigStatus");
-      var modal = document.getElementById("signalsModal");
+      var modal  = document.getElementById("signalsModal");
       if(!tb) return;
 
       var PAIRS = ["EURUSD","GBPUSD","USDJPY","AUDUSD","USDCHF","NZDUSD","USDCAD","EURJPY"];
@@ -583,61 +584,47 @@
       function sr(){ seed = (seed*1664525+1013904223) % 4294967296; return seed/4294967296; }
       function pick(a){ return a[Math.floor(sr()*a.length)] }
       function pip(sym){ return /JPY$/.test(sym) ? 0.01 : 0.0001; }
+      function fmt(sym,v){ return v>10 ? v.toFixed(2) : v.toFixed(4); }
 
-      // Datensatz erzeugen
       var rows = PAIRS.map(makeRow);
 
       function makeRow(sym){
         var dir = pick(["LONG","SHORT","HOLD"]);
         var base = BASE[sym] || 1;
         var px = base * (0.985 + sr()*0.03);
-        var atr = base * (pip(sym) * (/JPY$/.test(sym)?150:180)); // grob
+        var atr = base * (pip(sym) * (/JPY$/.test(sym)?160:200));
         var en=px, stp=px, tgt=px;
         if(dir==="LONG"){ stp=en-atr; tgt=en+1.8*atr; }
         if(dir==="SHORT"){ stp=en+atr; tgt=en-1.8*atr; }
-        var strength = Math.round(55 + sr()*35);
-        var prob     = Math.round(55 + sr()*30);
-        var conf     = (0.55 + sr()*0.35);
+        var strength = Math.round(60 + sr()*30);
+        var prob     = Math.round(58 + sr()*30);
+        var conf     = 0.65 + sr()*0.25;
         var tf       = pick(TFs);
         var regime   = pick(["Trend","Range","Volatil"]);
-        return {sym:sym, dir:dir, strength:strength, prob:prob, regime:regime,
+        return {sym:sym, pair:sym.slice(0,3)+'/'+sym.slice(3), dir:dir, strength:strength, prob:prob, regime:regime,
                 en:en, stp:stp, tgt:tgt, tf:tf, conf:conf};
       }
 
-      // leichtes "Leben" alle 2 s
       function tick(){
-        rows.forEach(function(r,i){
-          // sanfte Schwankung
-          var drift = (sr()-0.5) * pip(r.sym) * (/JPY$/.test(r.sym)?10:100);
-          r.en  = Math.max( pip(r.sym), r.en  + drift);
-          r.stp = r.dir==="LONG" ? Math.min(r.stp, r.en -  (1.0+sr()*0.3)*pip(r.sym)*(/JPY$/.test(r.sym)?80:120))
-                                 : Math.max(r.stp, r.en +  (1.0+sr()*0.3)*pip(r.sym)*(/JPY$/.test(r.sym)?80:120));
-          r.tgt = r.dir==="LONG" ? Math.max(r.tgt, r.en +  (1.6+sr()*0.5)*pip(r.sym)*(/JPY$/.test(r.sym)?140:220))
-                                 : Math.min(r.tgt, r.en -  (1.6+sr()*0.5)*pip(r.sym)*(/JPY$/.test(r.sym)?140:220));
-          // Signalqualität sanft variieren
-          r.strength = Math.max(40, Math.min(95, r.strength + Math.round((sr()-0.5)*6)));
-          r.prob     = Math.max(50, Math.min(90, r.prob     + Math.round((sr()-0.5)*5)));
-          r.conf     = Math.max(0.50,Math.min(0.95, r.conf  + (sr()-0.5)*0.04));
-          // seltene Richtungswechsel bei schwachem Signal
-          if(r.strength < 58 && sr() > 0.92){
-            r.dir = r.dir==="LONG" ? "SHORT" : (r.dir==="SHORT" ? "HOLD" : "LONG");
-            // Ziel/Stop neu setzen relativ zum neuen Entry
-            var atr = (Math.abs(r.en) || BASE[r.sym]) * pip(r.sym) * (/JPY$/.test(r.sym)?150:180);
-            if(r.dir==="LONG"){ r.stp=r.en-atr; r.tgt=r.en+1.8*atr; }
-            if(r.dir==="SHORT"){ r.stp=r.en+atr; r.tgt=r.en-1.8*atr; }
-          }
+        rows.forEach(function(r){
+          var d = (sr()-0.5) * pip(r.sym) * (/JPY$/.test(r.sym)?12:120);
+          r.en  = Math.max(pip(r.sym), r.en + d);
+          r.stp = r.dir==="LONG" ? Math.min(r.stp, r.en - (1.0+sr()*0.4)*pip(r.sym)*(/JPY$/.test(r.sym)?80:120))
+                                 : Math.max(r.stp, r.en + (1.0+sr()*0.4)*pip(r.sym)*(/JPY$/.test(r.sym)?80:120));
+          r.tgt = r.dir==="LONG" ? Math.max(r.tgt, r.en + (1.6+sr()*0.6)*pip(r.sym)*(/JPY$/.test(r.sym)?140:220))
+                                 : Math.min(r.tgt, r.en - (1.6+sr()*0.6)*pip(r.sym)*(/JPY$/.test(r.sym)?140:220));
+          r.strength = Math.max(50, Math.min(95, r.strength + Math.round((sr()-0.5)*5)));
+          r.prob     = Math.max(52, Math.min(90, r.prob     + Math.round((sr()-0.5)*4)));
+          r.conf     = Math.max(0.55,Math.min(0.95, r.conf  + (sr()-0.5)*0.03));
         });
       }
 
-      function fmt(sym,v){ return v>10 ? v.toFixed(2) : v.toFixed(4); }
-
       function render(){
         var html = rows.map(function(r){
-          var pair = r.sym.slice(0,3)+"/"+r.sym.slice(3);
           var cls  = r.dir==="LONG" ? "sig-long" : (r.dir==="SHORT" ? "sig-short" : "sig-hold");
           var now  = new Date().toLocaleTimeString();
           return '<tr>'
-            + '<td><strong>'+pair+'</strong></td>'
+            + '<td><strong>'+r.pair+'</strong></td>'
             + '<td class="'+cls+'">'+r.dir+'</td>'
             + '<td>'+r.strength+'/100</td>'
             + '<td>'+r.prob+'%</td>'
@@ -650,15 +637,17 @@
             + '<td>'+now+'</td>'
             + '</tr>';
         }).join('');
-        tb.innerHTML = html; // triggert MutationObserver für KPIs/Insights/Heatmap
-        if(status){ status.textContent = "Aktualisierung: alle 2 s (Demo) · "+new Date().toLocaleTimeString(); }
+        tb.innerHTML = html;
+        if(status){ status.textContent = "Aktualisierung: alle 2 s (Demo) · " + new Date().toLocaleTimeString(); }
+        if(window.PS_SIGNALS && typeof window.PS_SIGNALS.renderAll === 'function'){
+          try { window.PS_SIGNALS.renderAll(rows); } catch(e){ console.warn(e); }
+        }
       }
 
-      // initial befüllen & periodisch updaten
       render();
       setInterval(function(){ tick(); render(); }, 2000);
 
-      // Öffnen: Modal zeigen & frisches Render erzwingen
+      // Öffnen = Modal anzeigen + frisches Render + RenderCore versorgen
       window.__psOpenSignals = (function(old){
         return function(e){
           if(e) e.preventDefault();
@@ -668,108 +657,137 @@
         };
       })(window.__psOpenSignals);
     });
-  })();</script>
-  <script>/* SIG DATA ENGINE */(function(){
-    window.addEventListener("DOMContentLoaded",function(){
-      var tb = document.getElementById("sigTbody");
-      var status = document.getElementById("sigStatus");
-      var modal = document.getElementById("signalsModal");
-      if(!tb) return;
-
-      var PAIRS = ["EURUSD","GBPUSD","USDJPY","AUDUSD","USDCHF","NZDUSD","USDCAD","EURJPY"];
-      var BASE  = {EURUSD:1.1000, GBPUSD:1.2800, USDJPY:147.20, AUDUSD:0.6700, USDCHF:0.8890, NZDUSD:0.6150, USDCAD:1.3120, EURJPY:162.40};
-      var TFs   = ["M5","M15","M30","H1"];
-      var seed  = Math.floor(Date.now()/60000);
-
-      function sr(){ seed = (seed*1664525+1013904223) % 4294967296; return seed/4294967296; }
-      function pick(a){ return a[Math.floor(sr()*a.length)] }
-      function pip(sym){ return /JPY$/.test(sym) ? 0.01 : 0.0001; }
-
-      // Datensatz erzeugen
-      var rows = PAIRS.map(makeRow);
-
-      function makeRow(sym){
-        var dir = pick(["LONG","SHORT","HOLD"]);
-        var base = BASE[sym] || 1;
-        var px = base * (0.985 + sr()*0.03);
-        var atr = base * (pip(sym) * (/JPY$/.test(sym)?150:180)); // grob
-        var en=px, stp=px, tgt=px;
-        if(dir==="LONG"){ stp=en-atr; tgt=en+1.8*atr; }
-        if(dir==="SHORT"){ stp=en+atr; tgt=en-1.8*atr; }
-        var strength = Math.round(55 + sr()*35);
-        var prob     = Math.round(55 + sr()*30);
-        var conf     = (0.55 + sr()*0.35);
-        var tf       = pick(TFs);
-        var regime   = pick(["Trend","Range","Volatil"]);
-        return {sym:sym, dir:dir, strength:strength, prob:prob, regime:regime,
-                en:en, stp:stp, tgt:tgt, tf:tf, conf:conf};
+  })();
+  </script>
+  <script>/* SIG RENDER CORE */
+  (function(){
+    function qs(id){ return document.getElementById(id); }
+    function ensureContainers(){
+      var toolbar = document.querySelector('#signalsModal .sig-toolbar');
+      if(!toolbar) return;
+      if(!qs('sigProWrap')){
+        var wrap = document.createElement('div');
+        wrap.className = 'sig-pro'; wrap.id = 'sigProWrap';
+        wrap.innerHTML =
+          '<section class="pro-col">'
+          + '<h4>Top-Chancen</h4>'
+          + '<div class="sig-insights" id="sigInsights"></div>'
+          + '</section>'
+          + '<section class="pro-col">'
+          + '<h4>Trade-Plan</h4>'
+          + '<div id="sigPlan" class="plan-card">'
+          + '  <div class="row"><div>Pair</div><div id="plPair" class="rr">–</div></div>'
+          + '  <div class="row"><div>Richtung</div><div id="plDir">–</div></div>'
+          + '  <div class="row"><div>Entry</div><div id="plEntry">–</div></div>'
+          + '  <div class="row"><div>Stop</div><div id="plStop">–</div></div>'
+          + '  <div class="row"><div>Target</div><div id="plTarget">–</div></div>'
+          + '  <div class="row"><div>Risikoprofil</div><div id="plRR">–</div></div>'
+          + '  <div class="row"><div>Zeithorizont</div><div id="plTF">–</div></div>'
+          + '  <div class="row"><div>Notiz</div><div id="plNote" class="muted">–</div></div>'
+          + '  <div style="margin-top:8px"><span class="badge" id="plRegime">Regime: –</span> '
+          + '  <span class="badge" id="plConf">Confidence: –</span></div>'
+          + '</div>'
+          + '</section>'
+          + '<section class="pro-col">'
+          + '<h4>Volatilitäts-Heatmap</h4>'
+          + '<div id="sigHeatmap" class="heatmap"></div>'
+          + '<p class="muted" style="margin:6px 0 0">Grün = Long-Bias, Rot = Short-Bias, Blau = neutral</p>'
+          + '</section>';
+        toolbar.insertAdjacentElement('afterend', wrap);
       }
+    }
 
-      // leichtes "Leben" alle 2 s
-      function tick(){
-        rows.forEach(function(r,i){
-          // sanfte Schwankung
-          var drift = (sr()-0.5) * pip(r.sym) * (/JPY$/.test(r.sym)?10:100);
-          r.en  = Math.max( pip(r.sym), r.en  + drift);
-          r.stp = r.dir==="LONG" ? Math.min(r.stp, r.en -  (1.0+sr()*0.3)*pip(r.sym)*(/JPY$/.test(r.sym)?80:120))
-                                 : Math.max(r.stp, r.en +  (1.0+sr()*0.3)*pip(r.sym)*(/JPY$/.test(r.sym)?80:120));
-          r.tgt = r.dir==="LONG" ? Math.max(r.tgt, r.en +  (1.6+sr()*0.5)*pip(r.sym)*(/JPY$/.test(r.sym)?140:220))
-                                 : Math.min(r.tgt, r.en -  (1.6+sr()*0.5)*pip(r.sym)*(/JPY$/.test(r.sym)?140:220));
-          // Signalqualität sanft variieren
-          r.strength = Math.max(40, Math.min(95, r.strength + Math.round((sr()-0.5)*6)));
-          r.prob     = Math.max(50, Math.min(90, r.prob     + Math.round((sr()-0.5)*5)));
-          r.conf     = Math.max(0.50,Math.min(0.95, r.conf  + (sr()-0.5)*0.04));
-          // seltene Richtungswechsel bei schwachem Signal
-          if(r.strength < 58 && sr() > 0.92){
-            r.dir = r.dir==="LONG" ? "SHORT" : (r.dir==="SHORT" ? "HOLD" : "LONG");
-            // Ziel/Stop neu setzen relativ zum neuen Entry
-            var atr = (Math.abs(r.en) || BASE[r.sym]) * pip(r.sym) * (/JPY$/.test(r.sym)?150:180);
-            if(r.dir==="LONG"){ r.stp=r.en-atr; r.tgt=r.en+1.8*atr; }
-            if(r.dir==="SHORT"){ r.stp=r.en+atr; r.tgt=r.en-1.8*atr; }
-          }
-        });
-      }
+    function fmt(sym,v){ return v>10 ? v.toFixed(2) : v.toFixed(4); }
+    function score(r){ return (r.strength||0) * (r.prob||0) * (r.conf||0.8); }
 
-      function fmt(sym,v){ return v>10 ? v.toFixed(2) : v.toFixed(4); }
+    function renderInsights(rows){
+      var host = qs('sigInsights'); if(!host) return;
+      var top = rows.slice().sort(function(a,b){return score(b)-score(a)}).slice(0,3);
+      host.innerHTML = top.map(function(r){
+        var arrow = r.dir==='LONG'?'⬆️':(r.dir==='SHORT'?'⬇️':'⏸️');
+        var tip = r.dir==='LONG' ? 'Pullback im Aufwärtstrend kaufen'
+                 : r.dir==='SHORT' ? 'Short am Widerstand'
+                 : 'Momentum abwarten';
+        var crv = Math.abs((r.tgt-r.en)/((r.en-r.stp)||1));
+        return '<div class="ins-card">'
+          + '<h4>'+r.pair+' · '+r.dir+' '+arrow+'</h4>'
+          + '<p class="ins-p">Regime: '+r.regime+' · TF: '+r.tf
+          + '\nStärke '+r.strength+'/100 · WKT '+r.prob+'% · Confidence '+(r.conf||0).toFixed(2)
+          + '\nEmpfehlung: '+tip+' · erwartetes CRV ≈ '+crv.toFixed(2)+':1.</p></div>';
+      }).join('');
+    }
 
-      function render(){
-        var html = rows.map(function(r){
-          var pair = r.sym.slice(0,3)+"/"+r.sym.slice(3);
-          var cls  = r.dir==="LONG" ? "sig-long" : (r.dir==="SHORT" ? "sig-short" : "sig-hold");
-          var now  = new Date().toLocaleTimeString();
-          return '<tr>'
-            + '<td><strong>'+pair+'</strong></td>'
-            + '<td class="'+cls+'">'+r.dir+'</td>'
-            + '<td>'+r.strength+'/100</td>'
-            + '<td>'+r.prob+'%</td>'
-            + '<td>'+r.regime+'</td>'
-            + '<td>'+fmt(r.sym,r.en)+'</td>'
-            + '<td>'+fmt(r.sym,r.stp)+'</td>'
-            + '<td>'+fmt(r.sym,r.tgt)+'</td>'
-            + '<td>'+r.tf+'</td>'
-            + '<td>'+r.conf.toFixed(2)+'</td>'
-            + '<td>'+now+'</td>'
-            + '</tr>';
+    function renderPlan(rows){
+      var P={pair:qs('plPair'),dir:qs('plDir'),en:qs('plEntry'),st:qs('plStop'),tg:qs('plTarget'),
+             rr:qs('plRR'),tf:qs('plTF'),note:qs('plNote'),reg:qs('plRegime'),conf:qs('plConf')};
+      if(!P.pair || !rows.length) return;
+      var best = rows.slice().sort(function(a,b){return score(b)-score(a)})[0];
+      var rr   = Math.abs((best.tgt-best.en)/((best.en-best.stp)||1));
+      var pips = (function(){
+        var pip = /JPY$/.test(best.pair.replace('/','')) ? 0.01 : 0.0001;
+        return Math.abs(best.en-best.stp)/pip;
+      })();
+      P.pair.textContent  = best.pair.replace('/',' · ');
+      P.dir.textContent   = best.dir;
+      P.en.textContent    = fmt(best.pair,best.en);
+      P.st.textContent    = fmt(best.pair,best.stp);
+      P.tg.textContent    = fmt(best.pair,best.tgt);
+      P.rr.textContent    = 'R:R ≈ '+rr.toFixed(2)+' · Stopdistanz ≈ '+Math.round(pips)+' Pips';
+      P.tf.textContent    = best.tf;
+      P.reg.textContent   = 'Regime: '+best.regime;
+      P.conf.textContent  = 'Confidence: '+(best.conf||0).toFixed(2);
+      P.note.textContent  = best.dir==='LONG'
+                            ? 'Einstieg nahe 20/50-EMA; Stop unter Swing-Low; Teilgewinn am 1.0R.'
+                            : (best.dir==='SHORT'
+                              ? 'Rücklauf zum Widerstand; Stop über Swing-High; absichern bei 1.0R.'
+                              : 'Kein Trade: Signalqualität/Trend uneindeutig.');
+    }
+
+    // deterministische Mini-RNG für Heatmap
+    function hsh(s){ var h=2166136261; for(var i=0;i<s.length;i++){ h^=s.charCodeAt(i); h+= (h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);} return (h>>>0)/4294967295; }
+
+    function renderHeatmap(rows){
+      var H = qs('sigHeatmap'); if(!H) return;
+      var TFs = ['M5','M15','M30','H1'];
+      var by = Object.create(null); rows.forEach(function(r){ by[r.pair.replace('/','')] = r;});
+      var head = '<div class="cell c-head"></div>'+TFs.map(function(t){return '<div class="cell c-head">'+t+'</div>'}).join('');
+      var body = rows.map(function(r){
+        var symKey = r.pair.replace('/','');
+        var left   = '<div class="cell c-head">'+r.pair+'</div>';
+        var cells  = TFs.map(function(tf){
+          // leicht variieren, aber an Basis ausgerichtet
+          var base = score(r)/10000;
+          var v = (hsh(symKey+tf)+base)%1;
+          var dir = (v>0.66)?'HOLD':(v>0.33?(r.dir==='LONG'?'SHORT':'LONG'):r.dir);
+          var str = Math.max(50, Math.min(95, Math.round((r.strength||60) + (v-0.5)*20)));
+          var cls = str<58 ? 'c-hold' : (dir==='LONG'?'c-long':'c-short');
+          var lab = (dir==='LONG'?'L':(dir==='SHORT'?'S':'H'))+' '+str;
+          return '<div class="cell '+cls+'">'+lab+'</div>';
         }).join('');
-        tb.innerHTML = html; // triggert MutationObserver für KPIs/Insights/Heatmap
-        if(status){ status.textContent = "Aktualisierung: alle 2 s (Demo) · "+new Date().toLocaleTimeString(); }
-      }
+        return left+cells;
+      }).join('');
+      H.innerHTML = head + body;
+    }
 
-      // initial befüllen & periodisch updaten
-      render();
-      setInterval(function(){ tick(); render(); }, 2000);
-
-      // Öffnen: Modal zeigen & frisches Render erzwingen
-      window.__psOpenSignals = (function(old){
-        return function(e){
-          if(e) e.preventDefault();
-          if(modal){ modal.classList.remove("hidden"); modal.setAttribute("aria-hidden","false"); }
-          render();
-          if(typeof old==="function"){ try{ old(e); }catch(_){ } }
-        };
-      })(window.__psOpenSignals);
-    });
-  })();</script>
+    window.PS_SIGNALS = window.PS_SIGNALS || {};
+    window.PS_SIGNALS.renderAll = function(rows){
+      try{
+        ensureContainers();
+        // Normiere Daten (pair-String z.B. "EUR/USD")
+        rows = rows.map(function(r){
+          var p = (r.pair || (r.sym? (r.sym.slice(0,3)+'/'+r.sym.slice(3)) : '???/???'));
+          return {
+            pair:p, dir:r.dir, strength:+r.strength||60, prob:+r.prob||60, regime:r.regime||'Trend',
+            en:+r.en, stp:+r.stp, tgt:+r.tgt, tf:r.tf||'M15', conf:+(r.conf||0.7)
+          };
+        });
+        renderInsights(rows);
+        renderPlan(rows);
+        renderHeatmap(rows);
+      }catch(e){ console.error('PS_SIGNALS.renderAll error', e); }
+    };
+  })();
+  </script>
   <!-- SIGNALS MODAL -->
   <div id="signalsModal" class="modal hidden" aria-hidden="true" role="dialog" aria-label="Markt-Signale">
     <div class="modal-box">
@@ -810,7 +828,7 @@
             <p class="muted" style="margin:6px 0 0">Grün = Long-Bias, Rot = Short-Bias, Blau = neutral</p>
           </section>
         </div>
-          <span class="sig-badge" id="sigStatus">Aktualisierung: alle 2 s (Demo)</span>
+          <span class="sig-badge" id="sigStatus">Aktualisierung: alle 2 s (Demo) (Demo)</span>
           <button class="btn" id="sigExport">CSV exportieren</button>
         </div>
         <div class="sig-wrap">
