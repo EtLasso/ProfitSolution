@@ -135,6 +135,13 @@
   .sig-short{color:#ff5e7e;font-weight:800}
   .sig-hold{color:#86a8ff;font-weight:800}
   @media(max-width:480px){ .modal-box{max-height:90vh; overflow:auto} }
+  /* SIG-KPI */
+  .sig-kpis{display:grid;grid-template-columns:repeat(12,1fr);gap:12px;margin:6px 0 12px}
+  .kpi-sig{grid-column:span 3;background:#0b121f;border:1px solid #15213a;border-radius:14px;padding:12px;box-shadow:inset 0 1px 0 #1a2743}
+  .kpi-sig h4{margin:0 0 6px;font-family:Orbitron}
+  .metric{font-size:22px;font-weight:800;text-shadow:0 0 12px #00e5ff55}
+  @media(max-width:950px){.kpi-sig{grid-column:span 6}}
+  @media(max-width:600px){.kpi-sig{grid-column:span 12}}
 </style>
 
   <!-- Zusätzliche Styles fürs Demo-Modal -->
@@ -495,6 +502,20 @@
       const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="profitsolution_signale.csv"; a.click(); });
     btnReseed&&btnReseed.addEventListener("click",()=>{ seed=Math.floor(Date.now()/1000); render(); });
   })();</script>
+  <script>/* SIGNALS KPI JS */(function(){window.addEventListener("DOMContentLoaded",function(){
+    var tbody=document.getElementById("sigTbody");
+    var H=document.getElementById("sigKpiHit"),C=document.getElementById("sigKpiCrv"),D=document.getElementById("sigKpiHold"),M=document.getElementById("sigKpiModels");
+    if(!tbody||!H) return;
+    function rows(){ return Array.prototype.map.call(tbody.querySelectorAll("tr"),function(tr){ var t=tr.children; return {
+      strength: parseInt((t[2]&&t[2].textContent)||"0",10)||0,
+      prob:     parseInt((t[3]&&t[3].textContent)||"0",10)||0
+    };});}
+    function upd(){ var r=rows(); if(!r.length) return; var avgP=r.reduce((a,x)=>a+x.prob,0)/r.length; var avgS=r.reduce((a,x)=>a+x.strength,0)/r.length;
+      var crv=(1.0+(avgS/100)*0.8).toFixed(2); var holds=["12 min","25 min","48 min","1.5 h","3 h"];
+      var hold=holds[Math.floor((avgP+avgS)%holds.length)]; var models=5+Math.floor(avgS%4);
+      H.textContent=Math.round(avgP)+" %"; C.textContent=crv+" : 1"; D.textContent=hold; M.textContent=String(models);}
+    var mo=new MutationObserver(upd); mo.observe(tbody,{childList:true}); upd(); setInterval(upd,2000);
+  });})();</script>
 </body>
   <!-- SIGNALS MODAL -->
   <div id="signalsModal" class="modal hidden" aria-hidden="true" role="dialog" aria-label="Markt-Signale">
@@ -504,6 +525,12 @@
         <button class="btn btn-ghost close" id="signalsClose" aria-label="Schließen">×</button>
       </div>
       <div class="modal-body">
+        <div class="sig-kpis">
+          <div class="kpi-sig"><h4>Trefferquote (Demo)</h4><div class="metric" id="sigKpiHit">–</div></div>
+          <div class="kpi-sig"><h4>Ø Chance:Risiko</h4><div class="metric" id="sigKpiCrv">–</div></div>
+          <div class="kpi-sig"><h4>Ø Haltedauer</h4><div class="metric" id="sigKpiHold">–</div></div>
+          <div class="kpi-sig"><h4>Modelle im Ensemble</h4><div class="metric" id="sigKpiModels">–</div></div>
+        </div>
         <div class="sig-toolbar">
           <span class="sig-badge" id="sigStatus">Aktualisierung: alle 2 s</span>
           <button class="btn" id="sigExport">CSV exportieren</button>
