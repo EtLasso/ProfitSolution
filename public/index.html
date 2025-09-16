@@ -429,7 +429,7 @@
     document.addEventListener("keydown",function(e){ if(e.key==="Escape"){ closeModal(); } });
   })();</script>
   <script src="demo-data.js"></script>
-  <script>/* SIGNALS JS */(function(){
+  <script>/* SIGNALS JS */window.addEventListener("DOMContentLoaded", function(){ (function(){
     const btn=document.getElementById("signalsBtn");
     const modal=document.getElementById("signalsModal");
     const close=document.getElementById("signalsClose");
@@ -460,7 +460,7 @@
       const csv=lines.map(a=>a.map(x=>`"${x.replace(/"/g,"")}"`).join(",")).join("\n");
       const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="profitsolution_signale.csv"; a.click(); });
     btnReseed&&btnReseed.addEventListener("click",()=>{ seed=Math.floor(Date.now()/1000); render(); });
-  })();</script>
+  })(); });</script>
   <script>/* SIGNALS JS */(function(){
     const modal=document.getElementById("signalsModal");
     const closeBtn=document.getElementById("signalsClose");
