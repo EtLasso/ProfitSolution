@@ -20,6 +20,12 @@
     .back{display:inline-block; margin-top:18px; border:1px solid var(--border); padding:10px 14px; border-radius:10px; background:#0f192c}
     @media (max-width:480px){ h1{font-size:22px} }
   </style>
+/* LEGAL LINKS STYLES (unified) */
+  .legal-links{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;margin:16px 0}
+  .legal-links a{display:inline-block;padding:8px 12px;border:1px solid #16233f;border-radius:999px;text-decoration:none;color:#cfe0ff;background:#0f192c;box-shadow:inset 0 1px 0 #1a2743;transition:transform .15s ease, box-shadow .15s ease}
+  .legal-links a:hover{transform:translateY(-1px);box-shadow:0 6px 18px rgba(0,0,0,.25), inset 0 1px 0 #1a2743}
+  .legal-links a:active{transform:translateY(0)}
+  @media (max-width:560px){ .legal-links{gap:8px} .legal-links a{padding:7px 10px;font-size:14px} }
 </head>
 <body>
   <div class="wrap">
@@ -65,11 +71,12 @@
     <p class="small">Hinweis: Diese Vorlage ist ohne Gewähr und ersetzt keine Rechtsberatung.</p>
   </div>
 </body>
-<nav class="legal-links" style="margin:14px 0;display:flex;flex-wrap:wrap;gap:12px;font-size:14px">
+<nav class="legal-links">
   <a href="impressum.html">Impressum</a>
   <a href="datenschutz.html">Datenschutz</a>
   <a href="cookies.html">Cookies/Einstellungen</a>
   <a href="risikohinweis.html">Risikohinweis</a>
   <a href="nutzungsbedingungen.html">Nutzungsbedingungen</a>
+  <a href="index.html">Zur Startseite</a>
 </nav>
 </html>
