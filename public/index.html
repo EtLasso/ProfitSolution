@@ -2,7 +2,7 @@
 <html lang="de">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>ProfitSolution — KI Forex Trading</title>
   <meta name="description" content="ProfitSolution: modernes, futuristisches KI-gestütztes Forex-Trading Dashboard." />
   <meta name="theme-color" content="#00e5ff" />
@@ -158,6 +158,33 @@
   .muted{color:#a2b3c5}
   @media(max-width:1100px){ .pro-col{grid-column:span 6} }
   @media(max-width:650px){ .pro-col{grid-column:span 12} .plan-card .row{grid-template-columns:1fr} }
+  /* MOBILE AUTOFIT */
+  :root{
+    --step-0: clamp(14px, 1.2vw + .45rem, 18px);
+    --step-1: clamp(18px, 2.0vw + .55rem, 22px);
+    --step-2: clamp(26px, 3.5vw + .7rem, 36px);
+  }
+  html, body{height:100%;}
+  body{
+    -webkit-text-size-adjust:100%;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    padding-left:max(16px, env(safe-area-inset-left));
+    padding-right:max(16px, env(safe-area-inset-right));
+  }
+  header{ padding-top: env(safe-area-inset-top); }
+  footer{ padding-bottom: env(safe-area-inset-bottom); }
+  h1.title{ font-size: var(--step-2); line-height:1.12; }
+  .btn{ min-height:44px; padding:.7rem 1rem; }
+  img, video{ max-width:100%; height:auto; }
+  canvas{ display:block; width:100%; height:auto; }
+  .panel, .card, .chart-card{ padding:clamp(12px, 2.2vw, 18px); }
+  @media (max-width: 480px){
+    .nav{ gap:10px; padding:10px 0; }
+    .nav a{ font-size: var(--step-0); padding:8px 10px; }
+    .hero{ padding:46px 0 18px; }
+  }
+  @media (prefers-reduced-motion: reduce){ *{ animation:none !important; transition:none !important } }
 </style>
 
   <!-- Zusätzliche Styles fürs Demo-Modal -->
@@ -202,7 +229,7 @@
       <div class="panel">
         <h3 style="margin:0 0 6px; font-family:Orbitron;">Alpha-Snapshot</h3>
         <p style="margin:0; color:var(--muted)">Live-Eindruck der Signal-Engine (Demo-Daten)</p>
-        <canvas id="miniChart" aria-label="Mini Chart"></canvas>
+        \1 data-ratio="0.28" aria-label="Mini Chart"></canvas>
       </div>
     </section>
 
@@ -220,7 +247,7 @@
 
       <article id="chart" class="chart-card">
         <h3 style="margin:0 0 10px; font-family:Orbitron;">EUR/USD – Stimmungs-Indikator (Demo)</h3>
-        <canvas id="mainChart" aria-label="EUR/USD Chart"></canvas>
+        \1 data-ratio="0.50" aria-label="EUR/USD Chart"></canvas>
       </article>
 
       <article class="card"><h3>⚡ Latenz &amp; Stabilität</h3><p>Streaming-Updates &amp; Caching für flotte Dashboards auch bei hoher Last.</p></article>
@@ -250,7 +277,7 @@
         <button class="btn btn-ghost close" id="demoClose" aria-label="Schließen">×</button>
       </div>
       <div class="modal-body">
-        <canvas id="eurusdSim" aria-label="EUR/USD Live Simulation"></canvas>
+        \1 data-ratio="0.45" aria-label="EUR/USD Live Simulation"></canvas>
         <div class="hud">
           <div><strong>Status:</strong> <span id="simStatus">Pausiert</span></div>
           <div><strong>Position:</strong> <span id="simPos">Flat</span></div>
@@ -566,6 +593,23 @@
         return function(e){ if(e) e.preventDefault(); modal.classList.remove("hidden"); modal.setAttribute("aria-hidden","false"); render(); if(typeof old==="function"){ try{old(e);}catch(_){}} };
       })(window.__psOpenSignals);
     });
+  })();</script>
+  <script>/* CANVAS AUTOSIZE */(function(){
+    function debounce(f,ms){let t;return function(){clearTimeout(t);t=setTimeout(f,ms)}}
+    function ratioFor(id){ if(/mini/i.test(id)) return 0.28; if(/eurusd|main|chart/i.test(id)) return 0.5; return 0.4; }
+    function sizeOne(c){
+      var DPR=Math.min(window.devicePixelRatio||1,2);
+      var r=parseFloat(c.dataset.ratio||ratioFor(c.id));
+      var pw=c.parentElement?c.parentElement.clientWidth:c.clientWidth||320;
+      var ch=Math.max(140, Math.min(Math.round(window.innerHeight*0.5), Math.round(pw*r)));
+      c.style.width="100%"; c.style.height=ch+"px";
+      var cssW=c.clientWidth||pw; c.width=Math.round(cssW*DPR); c.height=Math.round(ch*DPR);
+      var ctx=c.getContext&&c.getContext("2d"); if(ctx && ctx.setTransform) ctx.setTransform(DPR,0,0,DPR,0,0);
+    }
+    function sizeAll(){ document.querySelectorAll("canvas").forEach(sizeOne); }
+    window.addEventListener("DOMContentLoaded", sizeAll); 
+    window.addEventListener("resize", debounce(sizeAll,150)); 
+    window.addEventListener("orientationchange", sizeAll); 
   })();</script>
 </body>
   <script>/* SIG DATA ENGINE (v2) */
